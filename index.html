@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+  <script src="https://unpkg.com/aframe-troika-text/dist/aframe-troika-text.min.js"></script>
+  <script src="editor.js"></script>
+  <script src="vr_menu.js"></script>
+  <script src="interactions.js"></script>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    #editor {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 10px;
+      font-family: sans-serif;
+      z-index: 10;
+      font-size: 14px;
+    }
+
+    #editor input, #editor select {
+      width: 70px;
+      margin-right: 5px;
+    }
+
+    #editor input, #editor select {
+      width: 70px;
+      margin-right: 5px;
+    }
+
+    #menuButton {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: sans-serif;
+      z-index: 10;
+    }
+
+    #menuButton:hover {
+      background: rgba(0, 0, 0, 0.9);
+    }
+
+  </style>
+</head>
+<body>
+
+<button id="menuButton" onclick="mainMenu()">☰ Menu</button>
+
+<div id="editor">
+  <div><b>Komponentas:</b></div>
+  <select id="componentSelect" onchange="loadComponentData()"></select><br>
+  Pozicija:
+  X <input type="number" id="posX" step="0.01">
+  Y <input type="number" id="posY" step="0.01">
+  Z <input type="number" id="posZ" step="0.01"><br>
+  Dydis:
+  W <input type="number" id="width" step="0.01">
+  H <input type="number" id="height" step="0.01"><br>
+  Pasukimas Y:
+  <input type="number" id="rotY" step="1"><br>
+  <button onclick="applyChanges()">Taikyti</button>
+</div>
+
+<!-- A-Frame scena -->
+<a-scene vr-mode-ui="enabled: true" embedded style="height: 100vh; width: 100vw;">
+  <a-assets>
+    <a-asset-item id="roomModel" src="modelis.glb"></a-asset-item>
+    <a-asset-item id="womanModel" src="woman_talk.glb"></a-asset-item>
+    <video id="tvvideo" src="video.mp4" loop playsinline crossorigin="anonymous"></video>
+</a-assets>
+
+  <!-- Kamera su paprastu valdymu -->
+  <a-entity id="camera" 
+            camera 
+            wasd-controls 
+            look-controls 
+            position="0 2.6 3">
+  </a-entity>
+
+  <!-- VR kontrolieriai (automatiškai rodomi tik VR režime) -->
+  <a-entity id="leftHand" 
+            hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"
+            laser-controls="hand: left"
+            raycaster="objects: .clickable">
+  </a-entity>
+  
+  <a-entity id="rightHand" 
+            hand-controls="hand: right; handModelStyle: lowPoly; color: #ffcccc"
+            laser-controls="hand: right"
+            raycaster="objects: .clickable">
+  </a-entity>
+
+  <!-- Kambario modelis -->
+  <a-entity id="room" gltf-model="#roomModel" position="0 0 -5" scale="0.5 0.5 0.5"></a-entity>
+
+  <!-- Video ekranas -->
+  <a-plane
+          id="tvScreen"
+          position="0 3.45 -6.33"
+          width="8.985"
+          height="5.06"
+          rotation="0 0 0"
+          material="shader: flat; src: #tvvideo; opacity: 0">
+  </a-plane>
+
+  <!-- Moteris su burbulu -->
+  <a-entity
+          id="woman"
+          gltf-model="#womanModel"
+          position="4.7 0.26 -1.9"
+          scale="1.5 1.5 1.5"
+          animation-mixer="clip: *; loop: repeat">
+
+    <a-plane
+            id="womanBubble"
+            position="0 2 0"
+            width="1.5"
+            height="0.5"
+            color="#000000"
+            opacity="0.6"
+            rotation="0 -40 0"
+            visible="false"
+            material="transparent: true">
+    </a-plane>
+
+    <a-entity
+            id="womanText"
+            position="0 2 0.01"
+            font="arial"
+            troika-text="align: center; color: white; fontSize: 0.07; maxWidth: 1.5"
+            rotation="0 -40 0"
+            visible="false">
+    </a-entity>
+  </a-entity>
+
+  <!-- Vyras su burbulu -->
+  <a-entity
+          id="man"
+          gltf-model="#womanModel"
+          position="-4.7 0.26 -1.5"
+          scale="1.5 1.5 1.5"
+          rotation="0 80 0"
+          animation-mixer="clip: *; loop: repeat">
+
+    <a-plane
+            id="manBubble"
+            position="0 2 0"
+            width="1.5"
+            height="0.5"
+            color="#000000"
+            opacity="0.6"
+            rotation="0 -60 0"
+            visible="false"
+            material="transparent: true">
+    </a-plane>
+
+    <a-entity
+            id="manText"
+            position="0 2 0.01"
+            rotation="0 -60 0"
+            troika-text="align: center; color: white; fontSize: 0.07; maxWidth: 1.5"
+            visible="false">
+    </a-entity>
+  </a-entity>
+
+  <!--
+  <a-light type="ambient" color="#404040"></a-light>
+  <a-light type="directional" position="0 10 0" light="castShadow: true"></a-light>
+  -->
+</a-scene>
+
+<!-- JS -->
+<script>
+
+  AFRAME.registerComponent('billboard-y', {
+    tick: function () {
+      const cam = document.querySelector('[camera]').object3D;
+      const obj = this.el.object3D;
+
+      const objPos = new THREE.Vector3().setFromMatrixPosition(obj.matrixWorld);
+      const camPos = new THREE.Vector3().setFromMatrixPosition(cam.matrixWorld);
+
+      camPos.y = objPos.y;
+      obj.lookAt(camPos);
+    }
+  });
+
+  function playVideo(lang) {
+    const plane = document.querySelector('#tvScreen');
+    plane.setAttribute('material', 'opacity', 1);
+    const video = document.querySelector('#tvvideo');
+    video.play();
+
+    setLanguage(lang);
+    startSpeechSync();
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      const video = document.querySelector('#tvvideo');
+      if (video.paused) {
+        video.play();
+      } else {
+        video.pause();
+      }
+    }
+  });
+
+</script>
+
+</body>
+</html>
