@@ -79,6 +79,7 @@
 <a-scene vr-mode-ui="enabled: true" embedded style="height: 100vh; width: 100vw;">
   <a-assets>
     <a-asset-item id="roomModel" src="modelis.glb"></a-asset-item>
+    <a-asset-item id="manModel" src="man_talk.glb"></a-asset-item>
     <a-asset-item id="womanModel" src="woman_talk.glb"></a-asset-item>
     <video id="tvvideo" src="video.mp4" loop playsinline crossorigin="anonymous"></video>
 </a-assets>
@@ -123,7 +124,7 @@
           gltf-model="#womanModel"
           position="4.7 0.26 -1.9"
           scale="1.5 1.5 1.5"
-          animation-mixer="clip: *; loop: repeat">
+          animation-mixer>
 
     <a-plane
             id="womanBubble"
@@ -150,7 +151,7 @@
   <!-- Vyras su burbulu -->
   <a-entity
           id="man"
-          gltf-model="#womanModel"
+          gltf-model="#manModel"
           position="-4.7 0.26 -1.5"
           scale="1.5 1.5 1.5"
           rotation="0 80 0"
