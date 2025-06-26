@@ -12,22 +12,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function initializeAllAnimations() {
   console.log('Starting animation initialization...');
-  
-  const womanEntity = document.querySelector('#woman');
-  const manEntity = document.querySelector('#man');
-  
-  // Inicializuoti moters animacijas
-  if (womanEntity) {
+
+  const woman = document.querySelector('#woman');
+  const man = document.querySelector('#man');
+
+  if (woman) {
     console.log('Woman entity found');
-    setupWomanAnimationDirect();
+    setupWomanAnimationDirect(); // Use Three.js for woman
   } else {
     console.error('Woman entity not found');
   }
-  
-  // Inicializuoti vyro animacijas
-  if (manEntity) {
+
+  if (man) {
     console.log('Man entity found');
-    setupManAnimation(manEntity);
+    setupManAnimationDirect(); // Use Three.js for man
   } else {
     console.error('Man entity not found');
   }
@@ -107,24 +105,76 @@ function startWomanAnimationLoop() {
   animate();
 }
 
-// Vyro animacijų valdymas (A-Frame animation-mixer)
-function setupManAnimation(entity) {
-  console.log('Setting up man animation with A-Frame mixer...');
-  
-  // Patikrinti ar entity turi animation-mixer
-  const mixer = entity.components['animation-mixer'];
-  console.log('Man mixer:', mixer);
-  
-  if (!mixer) {
-    console.log('Man: No mixer found, adding one...');
-    entity.setAttribute('animation-mixer', 'clip: *; loop: repeat');
-    
-    // Laukti kad mixer būtų pridėtas
-    setTimeout(() => {
-      tryStartManAnimation(entity);
-    }, 1000);
+function startManAnimationLoop() {
+  const man = document.querySelector('#man');
+
+  function animate() {
+    if (man && man.mixer) {
+      man.mixer.update(0.016); // ~60fps
+    }
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+}
+
+function setupManAnimationDirect() {
+  console.log('Setting up man animation directly with Three.js...');
+
+  const man = document.querySelector('#man');
+
+  // Wait for the model to fully load
+  if (man.hasLoaded) {
+    initializeManAnimations();
   } else {
-    tryStartManAnimation(entity);
+    man.addEventListener('model-loaded', function () {
+      console.log('Man model loaded event received');
+      setTimeout(initializeManAnimations, 1000);
+    });
+  }
+}
+
+function initializeManAnimations() {
+  const man = document.querySelector('#man');
+  const model = man.getObject3D('mesh');
+
+  if (!model || !model.animations || model.animations.length === 0) {
+    console.error('Man: No model or animations found');
+    setTimeout(initializeManAnimations, 2000); // Retry after 2 seconds
+    return;
+  }
+
+  console.log('Man animations found:', model.animations.map(a => a.name));
+
+  // Create a Three.js AnimationMixer for the man's model
+  const mixer = new THREE.AnimationMixer(model);
+
+  // Select the "idle" animation (or the first one if idle isn't labeled)
+  const idleClip = model.animations[0];
+  console.log('Selected idle animation:', idleClip.name);
+
+  // Create and play the idle animation action
+  const idleAction = mixer.clipAction(idleClip);
+  idleAction.setLoop(THREE.LoopRepeat);
+  idleAction.play();
+
+  console.log('Man animation started successfully!');
+
+  // Save the mixer and actions on the entity object for future reference
+  man.mixer = mixer;
+  man.idleAction = idleAction;
+  man.currentAction = idleAction;
+  man.animations = {};
+
+  // Create all possible actions
+  model.animations.forEach(clip => {
+    man.animations[clip.name] = mixer.clipAction(clip);
+  });
+
+  // Start the animation update loop
+  if (!manAnimationInitialized) {
+    manAnimationInitialized = true;
+    startManAnimationLoop();
   }
 }
 
@@ -236,19 +286,63 @@ function setWomanAnimation(animationName) {
 // Vyro animacijos keitimo funkcija (A-Frame)
 function setManAnimation(animationName) {
   const man = document.querySelector('#man');
-  
-  if (!man || !manAnimationInitialized) {
+
+  if (!man.mixer || !man.animations) {
     console.error('Man animations not initialized');
     return;
   }
-  
+
   console.log(`Changing man animation to: ${animationName}`);
-  
-  // Naudoti A-Frame animation-mixer
-  man.setAttribute('animation-mixer', {
-    clip: animationName,
-    loop: 'repeat'
-  });
+
+  let targetAction = null;
+
+  // Rasti tinkamą animaciją
+  if (animationName === 'idle' || animationName === 'Idle') {
+    targetAction = man.idleAction;
+  } else if (animationName === 'talk' || animationName === 'Talk neutral') {
+    // Ieškoti talk animacijos
+    const talkClipName = Object.keys(man.animations).find(name =>
+        name.toLowerCase().includes('talk') ||
+        name.toLowerCase().includes('speak') ||
+        name.toLowerCase().includes('key') // Gali būti "Key|Scene"
+    );
+
+    if (talkClipName) {
+      targetAction = man.animations[talkClipName];
+    } else {
+      // Jei nerasta talk animacijos, naudoti antrą animaciją arba idle
+      const animationNames = Object.keys(man.animations);
+      targetAction = man.animations[animationNames[1]] || man.idleAction;
+    }
+  } else {
+    // Bandyti rasti animaciją pagal tikslų pavadinimą
+    const clipName = Object.keys(man.animations).find(name =>
+        name.includes(animationName)
+    );
+
+    if (clipName) {
+      targetAction = man.animations[clipName];
+    } else {
+      targetAction = man.idleAction;
+    }
+  }
+
+  if (targetAction && targetAction !== man.currentAction) {
+    // Sustabdyti dabartinę animaciją
+    if (man.currentAction) {
+      man.currentAction.fadeOut(0.3);
+    }
+
+    // Paleisti naują animaciją
+    targetAction.reset();
+    targetAction.setLoop(THREE.LoopRepeat);
+    targetAction.fadeIn(0.3);
+    targetAction.play();
+
+    man.currentAction = targetAction;
+
+    console.log(`Man animation changed to: ${targetAction.getClip().name}`);
+  }
 }
 
 // Universali animacijos valdymo funkcija
@@ -309,6 +403,20 @@ function testWomanAnimations() {
   setTimeout(() => {
     console.log('Switching back to idle animation...');
     setWomanAnimation('idle');
+  }, 5000);
+}
+
+function testManAnimations() {
+  console.log('Testing woman animations...');
+
+  setTimeout(() => {
+    console.log('Switching to talk animation...');
+    setManAnimation('talk');
+  }, 2000);
+
+  setTimeout(() => {
+    console.log('Switching back to idle animation...');
+    setManAnimation('idle');
   }, 5000);
 }
 
