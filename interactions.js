@@ -48,23 +48,19 @@ function sayText(character, text) {
     }
 
     // Paleisti kalbėjimo animaciją
-    const characterEntity = document.querySelector(characterEntityId);
-    if (characterEntity) {
-        const currentAnimation = "Talk neutral";
+    const currentAnimation = "talk";
 
-        // Patikrinti ar reikia keisti animaciją
-        if (character === 'Tomas' && tomasLastAnimation !== currentAnimation) {
-            characterEntity.setAttribute('animation-mixer', 'clip: Talk neutral; loop: repeat');
-            tomasLastAnimation = currentAnimation;
-        } else if (character === 'Lina' && linaLastAnimation !== currentAnimation) {
-            characterEntity.setAttribute('animation-mixer', 'clip: Talk neutral; loop: repeat');
-            linaLastAnimation = currentAnimation;
-        }
+    // Patikrinti ar reikia keisti animaciją
+    if (character === 'Tomas' && tomasLastAnimation !== currentAnimation) {
+        setCharacterAnimation('Tomas', 'Talk neutral');
+        tomasLastAnimation = currentAnimation;
+    } else if (character === 'Lina' && linaLastAnimation !== currentAnimation) {
+        setCharacterAnimation('Lina', 'talk');
+        linaLastAnimation = currentAnimation;
     }
 
     console.log(`${character}: ${text}`);
 }
-
 
 function stopTalking(character) {
     let textElementId, characterEntityId;
@@ -95,20 +91,18 @@ function stopTalking(character) {
     }
 
     // Sustabdyti kalbėjimo animaciją (grįžti į neutralią pozą)
-    const characterEntity = document.querySelector(characterEntityId);
-    if (characterEntity) {
-        characterEntity.setAttribute('animation-mixer', 'clip: Idle; loop: repeat');
-
-        // Atnaujinti paskutinės animacijos būseną
-        if (character === 'Tomas') {
-            tomasLastAnimation = 'Idle';
-        } else if (character === 'Lina') {
-            linaLastAnimation = 'Idle';
-        }
+    if (character === 'Tomas') {
+        setCharacterAnimation('Tomas', 'Idle');
+        tomasLastAnimation = 'Idle';
+    } else if (character === 'Lina') {
+        setCharacterAnimation('Lina', 'idle');
+        linaLastAnimation = 'Idle';
     }
 
     console.log(`${character} stops talking`);
 }
+
+// Likusią interactions.js kodą palikite nepakeistą
 
 function checkForVideoInterruption() {
     // Patikrinti ar video nėra pristabdytas ar kitaip nutrauktas
@@ -200,7 +194,99 @@ function startSpeechSync() {
 // Funkcija sinchronizacijos sustabdymui
 function stopSpeechSync() {
     if (syncInterval) {
-        clearInterval(syncInterval);
+        clearInterval(syncInterval);function toggleVideoPlayback() {
+            const video = document.querySelector('#tvvideo');
+            if (video) {
+                if (video.paused) {
+                    video.play();
+                    startSpeechSync();
+                    console.log('Video tęsiamas');
+                } else {
+                    video.pause();
+                    stopSpeechSync();
+                    console.log('Video pristabdytas');
+                }
+            }
+        }
+
+        function stopVideo() {
+            const video = document.querySelector('#tvvideo');
+            const plane = document.querySelector('#tvScreen');
+
+            if (video) {
+                video.pause();
+                video.currentTime = 0;
+                stopSpeechSync();
+
+                // Paslėpti veikėjų tekstus
+                stopTalking('Tomas');
+                stopTalking('Lina');
+            }
+
+            if (plane) {
+                plane.setAttribute('material', 'opacity', 0);
+            }
+
+            console.log('Video sustabdytas');
+        }
+
+// Pagalbinės funkcijos
+        function cancelScheduledEvents() {
+            stopSpeechSync();
+            console.log('Suplanuoti įvykiai atšaukti');
+        }
+
+        function stopActivities() {
+            const video = document.querySelector('#tvvideo');
+            if (video && !video.paused) {
+                video.pause();
+            }
+            stopTalking('Tomas');
+            stopTalking('Lina');
+            console.log('Veikla sustabdyta');
+        }
+
+        function interruptShow() {
+            stopVideo();
+            showNotification('Show interrupted');
+            console.log('Šou nutrauktas');
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+// Klaviatūros šortcutai
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Escape') {
+                e.preventDefault();
+                if (isMenuVisible) {
+                    hideChoicePanel();
+                } else {
+                    mainMenu();
+                }
+            }
+
+            if (e.code === 'Space') {
+                e.preventDefault();
+                toggleVideoPlayback();
+            }
+
+            // Skaičių klavišai meniu
+            if (isMenuVisible && e.code.startsWith('Digit')) {
+                const number = parseInt(e.code.replace('Digit', ''));
+                if (number >= 1 && number <= 6) {
+                    selectAnswer(number);
+                }
+            }
+        });
         syncInterval = null;
     }
 }
@@ -209,16 +295,12 @@ async function loadDialogues() {
     try {
         const response_woman_lt = await fetch('woman_lt.json');
         woman_lt = await response_woman_lt.json();
-        console.log('Pokalbio duomenys užkrauti:', woman_lt);
         const response_woman_en = await fetch('woman_en.json');
         woman_en = await response_woman_en.json();
-        console.log('Pokalbio duomenys užkrauti:', woman_lt);
         const response_man_lt = await fetch('man_lt.json');
         man_lt = await response_man_lt.json();
-        console.log('Pokalbio duomenys užkrauti:', woman_lt);
         const response_man_en = await fetch('man_en.json');
         man_en = await response_man_en.json();
-        console.log('Pokalbio duomenys užkrauti:', woman_lt);
     } catch (error) {
         console.error('Klaida kraunant pokalbio duomenis:', error);
     }

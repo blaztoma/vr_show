@@ -1,5 +1,6 @@
 let currentMenuType = 'language_menu';
 let isVRMenuVisible = false;
+let currentLanguage = 'en';
 
 const menu_translations = {
     "en": {
@@ -101,7 +102,6 @@ function generateButtonPositions(buttonCount) {
     return positions.slice(0, buttonCount);
 }
 
-// Funkcija kuri gauna realius meniu duomenis
 function getMenuButtons(menuType) {
     const menuData = menu_translations[currentLanguage]?.[menuType];
     if (!menuData) return [];

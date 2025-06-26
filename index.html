@@ -8,6 +8,7 @@
   <script src="editor.js"></script>
   <script src="vr_menu.js"></script>
   <script src="interactions.js"></script>
+  <script src="animations.js"></script>
   <style>
     body {
       margin: 0;
@@ -85,21 +86,21 @@
 </a-assets>
 
   <!-- Kamera su paprastu valdymu -->
-  <a-entity id="camera" 
-            camera 
-            wasd-controls 
-            look-controls 
+  <a-entity id="camera"
+            camera
+            wasd-controls
+            look-controls
             position="0 2.6 3">
   </a-entity>
 
   <!-- VR kontrolieriai (automatiškai rodomi tik VR režime) -->
-  <a-entity id="leftHand" 
+  <a-entity id="leftHand"
             hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"
             laser-controls="hand: left"
             raycaster="objects: .clickable">
   </a-entity>
-  
-  <a-entity id="rightHand" 
+
+  <a-entity id="rightHand"
             hand-controls="hand: right; handModelStyle: lowPoly; color: #ffcccc"
             laser-controls="hand: right"
             raycaster="objects: .clickable">
@@ -107,7 +108,7 @@
 
   <!-- Kambario modelis -->
   <a-entity id="room" gltf-model="#roomModel" position="0 0 -5" scale="0.5 0.5 0.5"></a-entity>
-
+  
   <!-- Video ekranas -->
   <a-plane
           id="tvScreen"
@@ -185,44 +186,42 @@
 </a-scene>
 
 <!-- JS -->
-<script>
+  <script>
 
-  AFRAME.registerComponent('billboard-y', {
-    tick: function () {
-      const cam = document.querySelector('[camera]').object3D;
-      const obj = this.el.object3D;
+    AFRAME.registerComponent('billboard-y', {
+      tick: function () {
+        const cam = document.querySelector('[camera]').object3D;
+        const obj = this.el.object3D;
 
-      const objPos = new THREE.Vector3().setFromMatrixPosition(obj.matrixWorld);
-      const camPos = new THREE.Vector3().setFromMatrixPosition(cam.matrixWorld);
+        const objPos = new THREE.Vector3().setFromMatrixPosition(obj.matrixWorld);
+        const camPos = new THREE.Vector3().setFromMatrixPosition(cam.matrixWorld);
 
-      camPos.y = objPos.y;
-      obj.lookAt(camPos);
-    }
-  });
-
-  function playVideo(lang) {
-    const plane = document.querySelector('#tvScreen');
-    plane.setAttribute('material', 'opacity', 1);
-    const video = document.querySelector('#tvvideo');
-    video.play();
-
-    setLanguage(lang);
-    startSpeechSync();
-  }
-
-  document.addEventListener('keydown', function (e) {
-    if (e.code === 'Space') {
-      e.preventDefault();
-      const video = document.querySelector('#tvvideo');
-      if (video.paused) {
-        video.play();
-      } else {
-        video.pause();
+        camPos.y = objPos.y;
+        obj.lookAt(camPos);
       }
+    });
+
+    function playVideo(lang) {
+      const plane = document.querySelector('#tvScreen');
+      plane.setAttribute('material', 'opacity', 1);
+      const video = document.querySelector('#tvvideo');
+      video.play();
+
+      setLanguage(lang);
+      startSpeechSync();
     }
-  });
 
-</script>
-
+    document.addEventListener('keydown', function (e) {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        const video = document.querySelector('#tvvideo');
+        if (video.paused) {
+          video.play();
+        } else {
+          video.pause();
+        }
+      }
+    });
+  </script>
 </body>
 </html>
