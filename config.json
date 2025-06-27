@@ -1,0 +1,32 @@
+{
+  "topics": [
+    {
+      "position": 62,
+      "name": "What is a software process"
+    },
+    {
+      "position": 243.5,
+      "name": "Waterfall model"
+    },
+    {
+      "position": 380.5,
+      "name": "Spiral model"
+    },
+    {
+      "position": 523,
+      "name": "Prototyping"
+    },
+    {
+      "position": 747,
+      "name": "RUP model"
+    },
+    {
+      "position": 962,
+      "name": "Process improvement"
+    }
+  ],
+  "video_interruptions": {
+    "en": [243.0, 380.0, 522.5, 746.5, 961.5, 1113.3, 1182],
+    "lt": [243.0, 380.0, 522.5, 746.5, 961.5, 1113.3, 1182]
+  }
+}

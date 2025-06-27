@@ -8,6 +8,8 @@ let lastSpokenLina = null;
 let syncInterval = null;
 let tomasLastAnimation = null;
 let linaLastAnimation = null;
+let speechData = null;
+let configData = null;
 
 function getCurrentVideoTime() {
     const video = document.querySelector('#tvvideo');
@@ -271,6 +273,39 @@ function stopSpeechSync() {
     }
 }
 
+async function loadSpeeches() {
+    try {
+        const response = await fetch('speeches.json');
+        speechData = await response.json();
+        console.log('Pokalbių duomenys užkrauti sėkmingai!');
+    } catch (error) {
+        console.error('Klaida kraunant pokalbio duomenis:', error);
+    }
+}
+
+function createReviewSpeech(score, language = 'en') {
+    let speech = [...speechData.review_speech[language]];
+    speech[1].text = speech[1].text.replace('{score}', score);
+
+    if (language === 'lt') {
+        if (score < 2) {
+            speech.push(...speechData.review_low_score[language]);
+        } else if (score < 4) {
+            speech.push(...speechData.review_medium_score[language]);
+        } else {
+            speech.push(...speechData.review_high_score[language]);
+        }
+    } else {
+        if (score < 3) {
+            speech.push(...speechData.review_low_score[language]);
+        } else if (score < 4) {
+            speech.push(...speechData.review_medium_score[language]);
+        } else {
+            speech.push(...speechData.review_high_score[language]);
+        }
+    }
+}
+
 async function loadDialogues() {
     try {
         const response_woman_lt = await fetch('woman_lt.json');
@@ -286,6 +321,18 @@ async function loadDialogues() {
     }
 }
 
+async function loadConfig() {
+    try {
+        const response = await fetch('config.json');
+        configData = await response.json();
+        console.log('Konfigūracijos duomenys užkrauti sėkmingai!');
+    } catch (error) {
+        console.error('Klaida kraunant konfigūracijos duomenis:', error);
+    }
+}
+
 window.addEventListener('load', () => {
     loadDialogues();
+    loadSpeeches();
+    loadConfig();
 });

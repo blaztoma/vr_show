@@ -1,0 +1,130 @@
+{
+  "controls_speech": {
+    "en": [
+      {"text": "Hey! If you use a VR device,", "duration": 3},
+      {"text": "move in the same way you do in reality!", "duration": 3},
+      {"text": "Click the main button of the controller to perform some action!", "duration": 4},
+      {"text": "If you are using a regular computer,", "duration": 2},
+      {"text": "move using the \"A\", \"W\", \"S\", and \"D\" keys!", "duration": 4},
+      {"text": "Move the mouse to turn around and click the left button to perform some action!", "duration": 6}
+    ],
+    "lt": [
+      {"text": "Ei! Jei naudoji VR įrenginį,", "duration": 2},
+      {"text": "judėk taip pat, kaip ir realiam pasaulyje!", "duration": 3},
+      {"text": "Paspausk pagrindinį valdiklio mygtuką, kad atliktum veiksmą!", "duration": 4},
+      {"text": "Jei naudoji įprastą kompiuterį,", "duration": 2},
+      {"text": "vaikščiok naudodamas klavišus \"A\", \"W\", \"S\", and \"D\"!", "duration": 4},
+      {"text": "Judink pelę, kad apsisuktum, ir spausk kairį mygtuką, kad atliktum veiksmą!", "duration": 6}
+    ]
+  },
+  "initial_speech": {
+    "en": [
+      {"text": "Hi there!", "duration": 2},
+      {"text": "We are going to tell you everything we know about Software Processes.", "duration": 4},
+      {"text": "Click on me if you would like to interrupt the show and ask something!", "duration": 4},
+      {"text": "What would you like to do!?", "duration": 3}
+    ],
+    "lt": [
+      {"text": "Labas!", "duration": 2},
+      {"text": "Mes ketiname tau papasakoti viską, ką žinome apie programinės įrangos procesus.", "duration": 4},
+      {"text": "Paspausk mane, jei nori nutraukti šou ir kažko paklausti!", "duration": 4},
+      {"text": "Taigi, ką norėtum padaryti!?", "duration": 2}
+    ]
+  },
+  "interruption_speech": {
+    "en": [
+      {"text": "Stop!", "duration": 1},
+      {"text": "Our beloved viewer wants to ask something!", "duration": 4},
+      {"text": "Hey! What would you like to do!?", "duration": 3}
+    ],
+    "lt": [
+      {"text": "Stop!", "duration": 1},
+      {"text": "Mūsų mielas žiūrovas nori kažko paprašyti!", "duration": 4},
+      {"text": "Ei! Ką norėtum padaryti!?", "duration": 3}
+    ]
+  },
+  "video_interruption_speech": {
+    "en": [
+      {"text": "Stop!", "duration": 1},
+      {"text": "It's time to ask the audience!", "duration": 3}
+    ],
+    "lt": [
+      {"text": "Stop!", "duration": 1},
+      {"text": "Atėjo laikas kreiptis į auditoriją!", "duration": 3}
+    ]
+  },
+  "review_speech": {
+    "en": [
+      {"text": "Ok! Let's review your answers!", "duration": 3},
+      {"text": "Your score is {score}!", "duration": 4}
+    ],
+    "lt": [
+      {"text": "Gerai! Peržiūrėkime jūsų atsakymus!", "duration": 3},
+      {"text": "Jūs surinkote taškų:{score}!", "duration": 4}
+    ]
+  },
+  "review_low_score": {
+    "en": [
+      {"text": "I think you can do better!", "duration": 3}
+    ],
+    "lt": [
+      {"text": "Manau, kad galėtumėte daug geriau!", "duration": 3}
+    ]
+  },
+  "review_medium_score": {
+    "en": [
+      {"text": "Nice, but I think you can do better!", "duration": 3}
+    ],
+    "lt": [
+      {"text": "Neblogai, bet manau, kad galėtumėte daug geriau!", "duration": 3}
+    ]
+  },
+  "review_high_score": {
+    "en": [
+      {"text": "Perfect! You know a lot about software processes!", "duration": 4}
+    ],
+    "lt": [
+      {"text": "Nuostabu! Jūs daug žinote apie programinės įrangos procesus!", "duration": 4}
+    ]
+  },
+  "final_speech": {
+    "en": [
+      {"text": "Sadly, our show is coming to an end.", "duration": 3},
+      {"text": "But we're staying here in case you want to have some more fun!", "duration": 4},
+      {"text": "What would you like to do!?", "duration": 2}
+    ],
+    "lt": [
+      {"text": "Gaila, bet mūsų šou baigiasi...", "duration": 3},
+      {"text": "Bet mes liekame čia, jei norėtum dar pasismaginti!", "duration": 4},
+      {"text": "Ką norėtum daryti!?", "duration": 2}
+    ]
+  },
+  "no_speech": {
+    "en": [
+      {"text": "No! The correct answer is different. Let's proceed!", "duration": 5.5}
+    ],
+    "lt": [
+      {"text": "Ne! Deja, tai neteisingas atsakymas. Tęskime!", "duration": 5.5}
+    ]
+  },
+  "yes_speech": {
+    "en": [
+      {"text": "Yes! Absolutely correct! Let's proceed!", "duration": 5}
+    ],
+    "lt": [
+      {"text": "Taip! Visiškai teisingai! Tęskime!", "duration": 5}
+    ]
+  },
+  "final_quiz_speech": {
+    "en": [
+      {"text": "Our show is almost over.", "duration": 2},
+      {"text": "Let's see what you learned!", "duration": 2},
+      {"text": "Try to answer 5 questions from the whole show.", "duration": 4}
+    ],
+    "lt": [
+      {"text": "Mūsų laida beveik bagėsi.", "duration": 2},
+      {"text": "Pažiūrėkime, ką jūs išmokote!", "duration": 2},
+      {"text": "Pamėginkite atsakyti į 5 klausimus iš viso šou.", "duration": 4}
+    ]
+  }
+}
