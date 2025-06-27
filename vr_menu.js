@@ -1,6 +1,7 @@
 let currentMenuType = 'language_menu';
 let isVRMenuVisible = false;
 let currentLanguage = 'en';
+let isLanguageSelected = false;
 
 const menu_translations = {
     "en": {
@@ -248,7 +249,7 @@ function calculateMenuPosition() {
     direction.y = 0;
     direction.normalize();
 
-    const distance = 3;
+    const distance = 5; // Pakeista iš 3 į 5 - dabar meniu bus toliau
     const rotation = Math.atan2(-direction.x, -direction.z) * (180 / Math.PI);
     return {
         x: cameraPosition.x + direction.x * distance,
@@ -543,11 +544,8 @@ function handleLanguageMenuAnswer(answerNumber) {
 function setLanguage(lang) {
     currentLanguage = lang;
     console.log('Kalba pakeista į:', lang);
-
-    // Atnaujinti dabartinį meniu, jei jis matomas
-    if (isVRMenuVisible) {
-        showVRMenu(currentMenuType);
-    }
+    isLanguageSelected = true;
+    console.log('Kalba pasirinkta:', isLanguageSelected);
 }
 
 // Pakoreguoti mainMenu funkciją kad rodytų kalbos meniu jei kalba dar nepasirinkta
@@ -780,5 +778,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (camera) {
         camera.setAttribute('smart-controls', '');
         console.log('Controls initialized');
+    }
+});
+
+// Pridėti showman click komponentą (galima įdėti į vr_menu.js pabaigą)
+AFRAME.registerComponent('showman-click', {
+    init: function() {
+        this.el.addEventListener('click', (evt) => {
+            console.log('Showman clicked!');
+            console.log(isLanguageSelected);
+            if (isLanguageSelected) {
+                console.log('Language selected, showing main menu');
+                showVRMenu('main_menu');
+            }
+            
+            evt.stopPropagation();
+        });
     }
 });

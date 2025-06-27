@@ -82,6 +82,7 @@
     <a-asset-item id="roomModel" src="modelis.glb"></a-asset-item>
     <a-asset-item id="manModel" src="man_talk.glb"></a-asset-item>
     <a-asset-item id="womanModel" src="woman_talk.glb"></a-asset-item>
+    <a-asset-item id="showmanModel" src="show_man.glb"></a-asset-item>
     <video id="tvvideo" src="video.mp4" loop playsinline crossorigin="anonymous"></video>
 </a-assets>
 
@@ -90,7 +91,7 @@
             camera
             wasd-controls
             look-controls
-            position="0 2.6 3">
+            position="0 2.6 6">
   </a-entity>
 
   <!-- VR kontrolieriai (automatiškai rodomi tik VR režime) -->
@@ -155,7 +156,7 @@
           gltf-model="#manModel"
           position="-4.7 0.26 -1.5"
           scale="1.5 1.5 1.5"
-          rotation="0 80 0"
+          rotation="0 45 0"
           animation-mixer="clip: *; loop: repeat">
 
     <a-plane
@@ -172,6 +173,38 @@
 
     <a-entity
             id="manText"
+            position="0 2 0.01"
+            rotation="0 -60 0"
+            troika-text="align: center; color: white; fontSize: 0.07; maxWidth: 1.5"
+            visible="false">
+    </a-entity>
+  </a-entity>
+
+  <!-- Showman su click funkcionalumu -->
+  <a-entity
+          id="showman"
+          gltf-model="#showmanModel"
+          position="6 0.03 -0.79"
+          scale="1.5 1.5 1.5"
+          rotation="0 -45 0"
+          animation-mixer="clip: *; loop: repeat"
+          class="clickable"
+          showman-click>
+
+    <a-plane
+            id="showmanBubble"
+            position="0 2 0"
+            width="1.5"
+            height="0.5"
+            color="#000000"
+            opacity="0.6"
+            rotation="0 -60 0"
+            visible="false"
+            material="transparent: true">
+    </a-plane>
+
+    <a-entity
+            id="showmanText"
             position="0 2 0.01"
             rotation="0 -60 0"
             troika-text="align: center; color: white; fontSize: 0.07; maxWidth: 1.5"

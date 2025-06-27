@@ -47,17 +47,8 @@ function sayText(character, text) {
         }
     }
 
-    // Paleisti kalbėjimo animaciją
-    const currentAnimation = "talk";
-
-    // Patikrinti ar reikia keisti animaciją
-    if (character === 'Tomas' && tomasLastAnimation !== currentAnimation) {
-        setCharacterAnimation('Tomas', 'Talk neutral');
-        tomasLastAnimation = currentAnimation;
-    } else if (character === 'Lina' && linaLastAnimation !== currentAnimation) {
-        setCharacterAnimation('Lina', 'talk');
-        linaLastAnimation = currentAnimation;
-    }
+    // Paleisti kalbėjimo animaciją (sluoksniuotą)
+    startCharacterTalking(character);
 
     console.log(`${character}: ${text}`);
 }
@@ -90,14 +81,8 @@ function stopTalking(character) {
         }
     }
 
-    // Sustabdyti kalbėjimo animaciją (grįžti į neutralią pozą)
-    if (character === 'Tomas') {
-        setCharacterAnimation('Tomas', 'Idle');
-        tomasLastAnimation = 'Idle';
-    } else if (character === 'Lina') {
-        setCharacterAnimation('Lina', 'idle');
-        linaLastAnimation = 'Idle';
-    }
+    // Sustabdyti kalbėjimo animaciją (grįžti į idle)
+    stopCharacterTalking(character);
 
     console.log(`${character} stops talking`);
 }
@@ -110,11 +95,6 @@ function checkForVideoInterruption() {
     if (video && video.paused) {
         // Galite pridėti logiką sustabdymui
     }
-}
-
-function setLanguage(lang) {
-    currentLanguage = lang;
-    console.log('Kalba pakeista į:', lang);
 }
 
 // Funkcija kalbos duomenų pasirinkimui pagal dabartinę kalbą
