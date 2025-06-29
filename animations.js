@@ -205,8 +205,6 @@ class CharacterAnimationManager {
     }
 
     character.isTalking = false;
-
-    // Sustabdyti talk animaciją
     character.talkAction.stop();
     
     console.log(`${characterName}: Stopped talking (only idle running)`);

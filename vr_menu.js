@@ -2,80 +2,200 @@ let currentMenuType = 'language_menu';
 let isVRMenuVisible = false;
 let currentLanguage = 'en';
 let isLanguageSelected = false;
+let prebuiltMenus = {};
 
-const menu_translations = {
-    "en": {
-        "main_menu": {
-            "question": "What would you like to do now?",
-            "answer1": "Start the show!",
-            "answer2": "Continue show!",
-            "answer3": "Choose a topic!",
-            "answer4": "Show next topic!",
-            "answer5": "Show final quiz!",
-            "answer6": "Explain controls!"
-        },
-        "topic_menu": {
-            "question": "Choose a topic!",
-            "answer1": "What is a software process?",
-            "answer2": "Waterfall model",
-            "answer3": "Spiral model",
-            "answer4": "Prototyping",
-            "answer5": "RUP model",
-            "answer6": "Process improvement"
-        },
-        "language_menu": {
-            "question": "Choose a language!",
-            "answer1": "Lithuanian",
-            "answer2": "English"
-        }
-    },
-    "lt": {
-        "main_menu": {
-            "question": "Ką norėtumėte daryti dabar?",
-            "answer1": "Pradėti šou!",
-            "answer2": "Tęsti šou!",
-            "answer3": "Pasirinkti temą!",
-            "answer4": "Rodyti kitą temą!",
-            "answer5": "Rodyti galutinį testą!",
-            "answer6": "Paaiškink valdymą!"
-        },
-        "topic_menu": {
-            "question": "Pasirinkite temą!",
-            "answer1": "Kas yra programinės įrangos procesas?",
-            "answer2": "Krioklio modelis",
-            "answer3": "Spiralinė metodika",
-            "answer4": "Prototipavimas",
-            "answer5": "RUP modelis",
-            "answer6": "Proceso tobulinimas"
-        },
-        "language_menu": {
-            "question": "Pasirinkite kalbą!",
-            "answer1": "Lietuvių",
-            "answer2": "Anglų"
-        }
+let menu_translations = null;
+
+function checkConfigData() {
+    console.log('ConfigData status:', {
+        configData: configData,
+        topics: configData?.topics,
+        topicsLength: configData?.topics?.length,
+        menus: configData?.menus
+    });
+
+    if (!configData) {
+        console.log('configData nėra užkrautas');
+        return false;
     }
-};
 
-function getTranslation(category, key) {
-    return menu_translations[currentLanguage]?.[category]?.[key] || `Missing: ${category}.${key}`;
+    if (!configData.topics) {
+        console.log('configData.topics nėra užkrautas');
+        return false;
+    }
+
+    console.log('ConfigData ir topics užkrauti teisingai');
+    return true;
 }
 
-// Funkcija kuri dinamiškai generuoja mygtukų pozicijas pagal kiekį
+function initializeAllMenus() {
+    console.log('Building all VR menus...');
+    menu_translations = configData.menus;
+
+    if (checkConfigData()) {
+        createPrebuiltMenu('main_menu', 'en');
+        createPrebuiltMenu('main_menu', 'lt');
+        createPrebuiltMenu('language_menu', 'en');
+        createPrebuiltMenu('language_menu', 'lt');
+        createPrebuiltMenu('topic_menu', 'en');
+        createPrebuiltMenu('topic_menu', 'lt');
+        console.log('Menus successfully built');
+    } else {
+        console.warn('Menus were not built due to missing configData or data');
+    }
+}
+
+
+function createPrebuiltMenu(menuType, language) {
+    const menuKey = `${menuType}_${language}`;
+    console.log(`Building menu: ${menuKey}`);
+
+    const menuEntity = buildMenuEntityForLanguage(menuType, language);
+    if (menuEntity) {
+        menuEntity.setAttribute('id', `vrMenu_${menuKey}`);
+        menuEntity.setAttribute('visible', 'false');
+
+        document.querySelector('a-scene').appendChild(menuEntity);
+        prebuiltMenus[menuKey] = menuEntity;
+
+        console.log(`✅ Pre-built: ${menuKey}`);
+    }
+}
+
+
+function getTranslationForLanguage(category, key, language) {
+    if (category === 'topic_menu' && key === 'question') {
+        return language === 'lt' ? 'Pasirinkite temą!' : 'Choose a topic!';
+    }
+    return menu_translations[language]?.[category]?.[key] || `Missing: ${category}.${key}`;
+}
+
+function getMenuButtonsForLanguage(menuType, language) {
+    if (menuType === 'topic_menu') {
+        return generateTopicMenuButtonsForLanguage(language);
+    }
+
+    const menuData = menu_translations[language]?.[menuType];
+    if (!menuData) return [];
+
+    const buttons = [];
+    let answerNumber = 1;
+
+    while (menuData[`answer${answerNumber}`] !== undefined) {
+        const text = menuData[`answer${answerNumber}`];
+
+        if (text && text.trim() !== '') {
+            buttons.push({
+                answerNumber: answerNumber,
+                key: `answer${answerNumber}`,
+                text: text
+            });
+        }
+        answerNumber++;
+    }
+
+    return buttons;
+}
+
+function generateTopicMenuButtonsForLanguage(language) {
+    if (!configData || !configData.topics) {
+        console.warn('Config data arba topics duomenys nėra užkrauti');
+        return [];
+    }
+
+    const buttons = [];
+
+    configData.topics.forEach((topic, index) => {
+        const topicName = topic.name[language] || topic.name.en || topic.id;
+
+        buttons.push({
+            answerNumber: index + 1,
+            key: `topic_${topic.id}`,
+            text: topicName,
+            topicId: topic.id
+        });
+    });
+
+    return buttons;
+}
+
+function buildMenuEntityForLanguage(menuType, language) {
+    console.log('Building advanced menu entity:', menuType, 'for language:', language);
+
+    const buttonData = getMenuButtonsForLanguage(menuType, language);
+    if (!buttonData || buttonData.length === 0) {
+        console.error('No button data for menu:', menuType, language);
+        return null;
+    }
+
+    const menuEntity = document.createElement('a-entity');
+    menuEntity.setAttribute('class', 'vr-prebuilt-menu');
+
+    const positions = generateButtonPositions(buttonData.length);
+    const menuHeight = calculateMenuHeight(buttonData.length);
+
+    const background = document.createElement('a-plane');
+    background.setAttribute('width', '5');
+    background.setAttribute('height', menuHeight.toString());
+    background.setAttribute('color', '#000000');
+    background.setAttribute('opacity', '0.9');
+    background.setAttribute('material', 'transparent: true');
+    menuEntity.appendChild(background);
+
+    const title = document.createElement('a-troika-text');
+    title.setAttribute('value', getTranslationForLanguage(menuType, 'question', language));
+    title.setAttribute('position', calculateTitlePosition(menuHeight, buttonData.length));
+    title.setAttribute('align', 'center');
+    title.setAttribute('color', 'white');
+    title.setAttribute('font-size', '0.15');
+    menuEntity.appendChild(title);
+
+    buttonData.forEach((btn, index) => {
+        if (index >= positions.length) return; // Saugumas
+
+        const buttonEntity = document.createElement('a-box');
+        buttonEntity.setAttribute('id', `prebuiltBtn_${menuType}_${language}_${btn.answerNumber}`);
+        buttonEntity.setAttribute('width', '2');
+        buttonEntity.setAttribute('height', '0.4');
+        buttonEntity.setAttribute('depth', '0.1');
+        buttonEntity.setAttribute('position', positions[index].position);
+        buttonEntity.setAttribute('color', '#2a2a2a');
+
+        buttonEntity.setAttribute('vr-menu-button', {
+            menuType: menuType,
+            answerNumber: btn.answerNumber,
+            color: '#2a2a2a'
+        });
+
+        const buttonText = document.createElement('a-troika-text');
+        buttonText.setAttribute('value', btn.text);
+        buttonText.setAttribute('position', '0 0 0.051');
+        buttonText.setAttribute('align', 'center');
+        buttonText.setAttribute('color', 'white');
+        buttonText.setAttribute('font-size', '0.1');
+
+        buttonEntity.appendChild(buttonText);
+        menuEntity.appendChild(buttonEntity);
+
+        console.log('Advanced button created with component:', btn.answerNumber, btn.text);
+    });
+
+    return menuEntity;
+}
+
+
 function generateButtonPositions(buttonCount) {
     const positions = [];
 
     if (buttonCount <= 2) {
-        // 2 mygtukai - horizontaliai
         positions.push({ position: '-1.2 -0.1 0.01' });
         positions.push({ position: '1.2 -0.1 0.01' });
     } else if (buttonCount <= 4) {
-        // 4 mygtukai - 2x2 tinklelis
         positions.push({ position: '-1.2 0.3 0.01' });
         positions.push({ position: '1.2 0.3 0.01' });
         positions.push({ position: '-1.2 -0.3 0.01' });
         positions.push({ position: '1.2 -0.3 0.01' });
     } else if (buttonCount <= 6) {
-        // 6 mygtukai - 2x3 tinklelis
         positions.push({ position: '-1.2 0.4 0.01' });
         positions.push({ position: '1.2 0.4 0.01' });
         positions.push({ position: '-1.2 -0.2 0.01' });
@@ -83,7 +203,6 @@ function generateButtonPositions(buttonCount) {
         positions.push({ position: '-1.2 -0.8 0.01' });
         positions.push({ position: '1.2 -0.8 0.01' });
     } else {
-        // Daugiau nei 6 - sukurti tinklelį
         const cols = 3;
         const rows = Math.ceil(buttonCount / cols);
         const startY = 0.8;
@@ -103,39 +222,14 @@ function generateButtonPositions(buttonCount) {
     return positions.slice(0, buttonCount);
 }
 
-function getMenuButtons(menuType) {
-    const menuData = menu_translations[currentLanguage]?.[menuType];
-    if (!menuData) return [];
 
-    const buttons = [];
-    let answerNumber = 1;
-
-    // Ieškoti visų answer* raktų
-    while (menuData[`answer${answerNumber}`] !== undefined) {
-        const text = menuData[`answer${answerNumber}`];
-
-        // Praleisti tuščius tekstus
-        if (text && text.trim() !== '') {
-            buttons.push({
-                answerNumber: answerNumber,
-                key: `answer${answerNumber}`,
-                text: text
-            });
-        }
-        answerNumber++;
-    }
-
-    return buttons;
-}
-
-// Funkcija kuri automatiškai rodo kalbos meniu pradėjus programą
 function showInitialLanguageMenu() {
     setTimeout(() => {
         showVRMenu('language_menu');
     }, 1000);
 }
 
-// Funkcija kuri apskaičiuoja meniu aukštį pagal mygtukų kiekį
+
 function calculateMenuHeight(buttonCount) {
     const titleHeight = 0.5; // Vietos antraštei
     const padding = 0.4; // Viršutinis ir apatinis padding
@@ -154,88 +248,18 @@ function calculateMenuHeight(buttonCount) {
         rows = Math.ceil(buttonCount / cols);
     }
 
-    // Apskaičiuoti bendrą aukštį
     const buttonsHeight = rows * buttonHeight + (rows - 1) * buttonSpacing;
     return titleHeight + buttonsHeight + padding;
 }
 
-// Funkcija kuri apskaičiuoja antraštės poziciją
+
 function calculateTitlePosition(menuHeight, buttonCount) {
     const topPadding = 0.2;
     const titleY = (menuHeight / 2) - topPadding - 0.1; // 0.1 - pusė antraštės aukščio
     return `0 ${titleY} 0.01`;
 }
 
-function createVRMenu(menuType = 'main_menu') {
-    console.log('Creating VR menu:', menuType);
 
-    const menuEntity = document.createElement('a-entity');
-    menuEntity.setAttribute('id', 'vrMenu');
-
-    // Apskaičiuoti poziciją ir rotaciją pagal kameros kryptį
-    const menuPos = calculateMenuPosition();
-    menuEntity.setAttribute('position', `${menuPos.x} ${menuPos.y} ${menuPos.z}`);
-    menuEntity.setAttribute('rotation', `0 ${menuPos.rotation} 0`);
-
-    // Gauti mygtukų duomenis dinamiškai
-    const buttonData = getMenuButtons(menuType);
-    const positions = generateButtonPositions(buttonData.length);
-
-    // Apskaičiuoti meniu aukštį pagal mygtukų kiekį
-    const menuHeight = calculateMenuHeight(buttonData.length);
-
-    // Fono panel su dinamišku aukščiu
-    const background = document.createElement('a-plane');
-    background.setAttribute('width', '5');
-    background.setAttribute('height', menuHeight.toString());
-    background.setAttribute('color', '#000000');
-    background.setAttribute('opacity', '0.9');
-    background.setAttribute('material', 'transparent: true');
-    menuEntity.appendChild(background);
-
-    // Antraštė su dinamiška pozicija
-    const title = document.createElement('a-troika-text');
-    title.setAttribute('value', getTranslation(menuType, 'question'));
-    title.setAttribute('position', calculateTitlePosition(menuHeight, buttonData.length));
-    title.setAttribute('align', 'center');
-    title.setAttribute('color', 'white');
-    menuEntity.appendChild(title);
-
-    // Sukurti mygtukus
-    buttonData.forEach((btn, index) => {
-        if (index >= positions.length) return; // Saugumas
-
-        const buttonEntity = document.createElement('a-box');
-        buttonEntity.setAttribute('width', '2');
-        buttonEntity.setAttribute('height', '0.4');
-        buttonEntity.setAttribute('depth', '0.1');
-        buttonEntity.setAttribute('position', positions[index].position);
-        buttonEntity.setAttribute('color', '#2a2a2a');
-
-        // Pridėti komponentą su duomenimis
-        buttonEntity.setAttribute('vr-menu-button', {
-            menuType: menuType,
-            answerNumber: btn.answerNumber
-        });
-
-        // Mygtuko tekstas
-        const buttonText = document.createElement('a-troika-text');
-        buttonText.setAttribute('value', btn.text);
-        buttonText.setAttribute('position', '0 0 0.051');
-        buttonText.setAttribute('align', 'center');
-        buttonText.setAttribute('color', 'white');
-        buttonText.setAttribute('font-size', '0.1');
-
-        buttonEntity.appendChild(buttonText);
-        menuEntity.appendChild(buttonEntity);
-
-        console.log('Button created:', btn.answerNumber, btn.text);
-    });
-
-    return menuEntity;
-}
-
-// Funkcija apskaičiuoti meniu poziciją pagal kameros kryptį
 function calculateMenuPosition() {
     const camera = document.querySelector('#camera');
     if (!camera) return { x: 0, y: 2, z: -5 };
@@ -259,7 +283,7 @@ function calculateMenuPosition() {
     };
 }
 
-// Komponentas, kuris automatiškai prisitaiko prie režimo
+
 AFRAME.registerComponent('smart-controls', {
     init: function() {
         this.sceneEl = this.el.sceneEl;
@@ -287,12 +311,10 @@ AFRAME.registerComponent('smart-controls', {
     },
 
     setupVRMode: function() {
-        // Pašalinti desktop raycaster
         if (this.desktopRaycaster && this.desktopRaycaster.parentNode) {
             this.desktopRaycaster.parentNode.removeChild(this.desktopRaycaster);
         }
 
-        // VR režime pridėti gaze cursor
         if (!this.gazeCursor) {
             this.gazeCursor = document.createElement('a-cursor');
             this.gazeCursor.setAttribute('position', '0 0 -0.5');
@@ -312,7 +334,6 @@ AFRAME.registerComponent('smart-controls', {
             });
             this.gazeCursor.setAttribute('raycaster', 'objects: .clickable');
 
-            // Animacijos
             this.gazeCursor.setAttribute('animation__click', {
                 property: 'scale',
                 startEvents: 'click',
@@ -331,17 +352,14 @@ AFRAME.registerComponent('smart-controls', {
             });
         }
 
-        // Pridėti cursor prie kameros
         this.el.appendChild(this.gazeCursor);
     },
 
     setupDesktopMode: function() {
-        // Desktop režime pašalinti gaze cursor
         if (this.gazeCursor && this.gazeCursor.parentNode) {
             this.gazeCursor.parentNode.removeChild(this.gazeCursor);
         }
 
-        // Pridėti desktop raycaster pelės valdymui
         if (!this.desktopRaycaster) {
             this.desktopRaycaster = document.createElement('a-entity');
             this.desktopRaycaster.setAttribute('raycaster', {
@@ -366,7 +384,7 @@ AFRAME.registerComponent('smart-controls', {
     }
 });
 
-// Pagerinta VR meniu mygtuko komponentas
+
 AFRAME.registerComponent('vr-menu-button', {
     schema: {
         action: {type: 'string'},
@@ -431,7 +449,8 @@ AFRAME.registerComponent('vr-menu-button', {
             this.el.setAttribute('scale', '1 1 1');
         }, 100);
 
-        // Iškviesti atitinkamą handler
+        hideVRMenu();
+
         try {
             if (menuType === 'main_menu') {
                 handleMainMenuAnswer(answerNumber);
@@ -444,41 +463,127 @@ AFRAME.registerComponent('vr-menu-button', {
             console.error('Error handling menu action:', error);
         }
 
-        hideVRMenu();
     }
 });
 
-// Meniu rodymas
+
+AFRAME.registerComponent('quiz-button', {
+    schema: {
+        answerNumber: {type: 'int'},
+        color: {type: 'color', default: '#2a2a2a'}
+    },
+
+    init: function() {
+        this.el.classList.add('clickable');
+
+        this.el.addEventListener('click', (evt) => {
+            console.log('Quiz answer clicked:', this.data.answerNumber);
+            this.handleClick();
+        });
+
+        this.el.addEventListener('mouseenter', () => {
+            this.el.setAttribute('material', 'color', '#3a3a3a');
+            this.el.setAttribute('scale', '1.05 1.05 1');
+        });
+
+        this.el.addEventListener('mouseleave', () => {
+            this.el.setAttribute('material', 'color', this.data.color);
+            this.el.setAttribute('scale', '1 1 1');
+        });
+
+        this.el.addEventListener('raycaster-intersected', () => {
+            console.log('Quiz raycaster intersected:', this.data.answerNumber);
+            this.el.setAttribute('material', 'color', '#4a4a4a');
+        });
+
+        this.el.addEventListener('raycaster-intersected-cleared', () => {
+            this.el.setAttribute('material', 'color', this.data.color);
+        });
+
+        this.el.addEventListener('fusing', () => {
+            console.log('Quiz button fusing:', this.data.answerNumber);
+            this.el.setAttribute('material', 'color', '#5a5a5a');
+        });
+
+        this.el.addEventListener('fuse-reset', () => {
+            this.el.setAttribute('material', 'color', this.data.color);
+        });
+    },
+
+    handleClick: function() {
+        const answerNumber = this.data.answerNumber;
+
+        console.log('Quiz answer selected:', answerNumber);
+
+        this.el.setAttribute('animation', {
+            property: 'scale',
+            from: '1 1 1',
+            to: '0.95 0.95 0.95',
+            dur: 100,
+            easing: 'easeInOutQuad',
+            autoplay: true,
+            loop: false
+        });
+
+        setTimeout(() => {
+            this.el.setAttribute('scale', '1 1 1');
+        }, 100);
+
+        handleQuizAnswer(answerNumber);
+    }
+});
+
+
 function showVRMenu(menuType = 'main_menu') {
-    if (isVRMenuVisible) return;
+    console.log(`📋 Showing menu: ${menuType} (${currentLanguage})`);
+    hideAllMenus();
 
-    const scene = document.querySelector('a-scene');
-    const existingMenu = document.getElementById('vrMenu');
+    const menuKey = `${menuType}_${currentLanguage}`;
+    const menu = prebuiltMenus[menuKey];
 
-    if (existingMenu) {
-        existingMenu.remove();
+    if (!menu) {
+        console.error(`Menu not found: ${menuKey}`);
+        if (menuType === 'topic_menu' && configData && configData.topics) {
+            console.log('🔄 Creating missing topic menu...');
+            createPrebuiltMenu('topic_menu', currentLanguage);
+            setTimeout(() => showVRMenu(menuType), 100);
+        }
+        return;
     }
 
+    updateMenuPosition(menu);
+    menu.setAttribute('visible', 'true');
+
+    isMenuVisible = true;
     currentMenuType = menuType;
-    const menu = createVRMenu(menuType);
-    scene.appendChild(menu);
 
-    isVRMenuVisible = true;
-
-    // Pristabdyti video
-    const video = document.querySelector('#tvvideo');
-    if (video && !video.paused) {
-        video.pause();
-    }
+    console.log(`✅ Menu shown: ${menuKey}`);
 }
+
+function hideAllMenus() {
+    if (!prebuiltMenus || Object.keys(prebuiltMenus).length === 0) {
+        console.log('⚠️ hideAllMenus called before initialization');
+        isMenuVisible = false;
+        currentMenuType = null;
+        return;
+    }
+
+    Object.values(prebuiltMenus).forEach(menu => {
+        if (menu) {
+            menu.setAttribute('visible', 'false');
+            menu.setAttribute('position', '0 -1000 0');
+        }
+    });
+
+    isMenuVisible = false;
+    currentMenuType = null;
+}
+
 
 function hideVRMenu() {
-    const menu = document.getElementById('vrMenu');
-    if (menu) {
-        menu.remove();
-    }
-    isVRMenuVisible = false;
+    hideAllMenus();
 }
+
 
 function toggleVRMenu() {
     if (isVRMenuVisible) {
@@ -488,25 +593,32 @@ function toggleVRMenu() {
     }
 }
 
-// Menu handlers
+
+function updateMenuPosition(menuEntity) {
+    const menuPos = calculateMenuPosition();
+    menuEntity.setAttribute('position', `${menuPos.x} ${menuPos.y} ${menuPos.z}`);
+    menuEntity.setAttribute('rotation', `0 ${menuPos.rotation} 0`);
+}
+
+
 function handleMainMenuAnswer(answerNumber) {
     switch(answerNumber) {
         case 1: // Pradėti šou!
             startShow();
             break;
-        case 2: // Tęsti šou!
+        case 2:
             continueShow();
             break;
-        case 3: // Pasirinkti temą!
+        case 3:
             showTopicMenu();
             break;
-        case 4: // Rodyti kitą temą!
+        case 4:
             showNextTopic();
             break;
-        case 5: // Rodyti galutinį testą!
+        case 5:
             showFinalQuiz();
             break;
-        case 6: // Paaiškink valdymą!
+        case 6:
             explainControls();
             break;
         default:
@@ -515,158 +627,33 @@ function handleMainMenuAnswer(answerNumber) {
 }
 
 function handleTopicMenuAnswer(answerNumber) {
-    const topics = [
-        'software_process',
-        'waterfall_model',
-        'spiral_model',
-        'prototyping',
-        'rup_model',
-        'process_improvement'
-    ];
+    if (!configData || !configData.topics) {
+        console.error('Config data arba topics duomenys nėra užkrauti');
+        return;
+    }
 
-    if (answerNumber >= 1 && answerNumber <= 6) {
-        const selectedTopic = topics[answerNumber - 1];
-        showTopic(selectedTopic);
+    const topicIndex = answerNumber - 1;
+    if (topicIndex >= 0 && topicIndex < configData.topics.length) {
+        const selectedTopic = configData.topics[topicIndex];
+        showTopic(selectedTopic.id);
+    } else {
+        console.error('Neteisingas topic answer number:', answerNumber);
     }
 }
 
 function handleLanguageMenuAnswer(answerNumber) {
     if (answerNumber === 1) {
         setLanguage('lt');
-        playVideo('lt');
+        playInitialSpeech();
     } else if (answerNumber === 2) {
         setLanguage('en');
-        playVideo('en');
+        playInitialSpeech();
     }
+    updateVideoSource();
     console.log(`Kalba pasirinkta: ${currentLanguage}`);
 }
 
-function setLanguage(lang) {
-    currentLanguage = lang;
-    console.log('Kalba pakeista į:', lang);
-    isLanguageSelected = true;
-    console.log('Kalba pasirinkta:', isLanguageSelected);
-}
-
-// Pakoreguoti mainMenu funkciją kad rodytų kalbos meniu jei kalba dar nepasirinkta
-function mainMenu(interruption = false) {
-    if (interruption) {
-        cancelScheduledEvents();
-        stopActivities();
-        interruptShow();
-    } else {
-        // Jei dar nėra pasirinkta kalba, rodyti kalbos meniu
-        const video = document.querySelector('#tvvideo');
-        if (!video.src || video.currentTime === 0) {
-            showVRMenu('language_menu');
-        } else {
-            showVRMenu('main_menu');
-        }
-    }
-}
-
-// Veiksmai
-function startShow() {
-    const video = document.querySelector('#tvvideo');
-    const plane = document.querySelector('#tvScreen');
-
-    if (video && plane) {
-        plane.setAttribute('material', 'opacity', 1);
-        video.currentTime = 0; // Pradėti nuo pradžios
-        video.play();
-        startSpeechSync();
-        console.log('Šou pradėtas');
-        showNotification('Šou pradėtas!');
-    }
-}
-
-function continueShow() {
-    const video = document.querySelector('#tvvideo');
-
-    if (video) {
-        if (video.paused) {
-            video.play();
-            startSpeechSync();
-            console.log('Šou tęsiamas');
-            showNotification('Šou tęsiamas!');
-        } else {
-            console.log('Šou jau vyksta');
-            showNotification('Šou jau vyksta!');
-        }
-    }
-}
-
-function showTopicMenu() {
-    showVRMenu('topic_menu');
-}
-
-function showTopic(topicName) {
-    console.log('Pasirinkta tema:', topicName);
-    showNotification(`Rodoma tema: ${topicName}`);
-    // Čia galite pridėti logiką konkrečios temos rodymui
-}
-
-function showNextTopic() {
-    console.log('Rodoma kita tema');
-    showNotification('Rodoma kita tema!');
-    // Čia galite pridėti logiką kitos temos rodymui
-}
-
-function showFinalQuiz() {
-    console.log('Rodomas galutinis testas');
-    showNotification('Rodomas galutinis testas!');
-    // Čia galite pridėti testo logiką
-}
-
-function explainControls() {
-    const controlsText = currentLanguage === 'lt' ?
-        'Valdymas:\n- Žiūrėkite į mygtuką 1.5 sek\n- Naudokite VR kontrolerius\n- Judėkite galva aplink sceną' :
-        'Controls:\n- Look at button for 1.5 sec\n- Use VR controllers\n- Move your head around the scene';
-
-    showNotification(controlsText, 5000);
-}
-
-// Atnaujinta showNotification funkcija taip pat naudoja kameros kryptį
-function showNotification(message, duration = 3000) {
-    const scene = document.querySelector('a-scene');
-    const notification = document.createElement('a-entity');
-    notification.setAttribute('id', 'vrNotification');
-
-    // Apskaičiuoti poziciją pagal kameros kryptį
-    const notificationPos = calculateMenuPosition();
-    // Pranešimas šiek tiek aukščiau ir arčiau nei meniu
-    notificationPos.y += 0.5;
-    notificationPos.z += 1;
-
-    notification.setAttribute('position', `${notificationPos.x} ${notificationPos.y} ${notificationPos.z}`);
-
-    const background = document.createElement('a-plane');
-    background.setAttribute('width', '4');
-    background.setAttribute('height', '1');
-    background.setAttribute('color', '#333333');
-    background.setAttribute('opacity', '0.9');
-    background.setAttribute('material', 'transparent: true');
-    notification.appendChild(background);
-
-    const text = document.createElement('a-text');
-    text.setAttribute('value', message);
-    text.setAttribute('position', '0 0 0.01');
-    text.setAttribute('align', 'center');
-    text.setAttribute('color', 'white');
-    text.setAttribute('width', '6');
-    notification.appendChild(text);
-
-    scene.appendChild(notification);
-
-    setTimeout(() => {
-        const existingNotification = document.getElementById('vrNotification');
-        if (existingNotification) {
-            existingNotification.remove();
-        }
-    }, duration);
-}
-
-// Pagalbinės funkcijos iš originalaus kodo
+/*
 function cancelScheduledEvents() {
     if (typeof stopSpeechSync === 'function') {
         stopSpeechSync();
@@ -685,18 +672,13 @@ function stopActivities() {
     }
     console.log('Veikla sustabdyta');
 }
+*/
 
 function interruptShow() {
     const video = document.querySelector('#tvvideo');
-    const plane = document.querySelector('#tvScreen');
 
     if (video) {
         video.pause();
-        video.currentTime = 0;
-    }
-
-    if (plane) {
-        plane.setAttribute('material', 'opacity', 0);
     }
 
     if (typeof stopSpeechSync === 'function') {
@@ -706,17 +688,12 @@ function interruptShow() {
         stopTalking('Tomas');
         stopTalking('Lina');
     }
-
-    showNotification('Šou nutrauktas');
-    console.log('Šou nutrauktas');
 }
 
-// Komponentas, kuris aptinka VR/Desktop režimą ir prisitaiko
 AFRAME.registerComponent('adaptive-controls', {
     init: function() {
         const sceneEl = this.el.sceneEl;
 
-        // Klausytis VR režimo pasikeitimų
         sceneEl.addEventListener('enter-vr', () => {
             console.log('Entered VR mode');
             this.switchToVRMode();
@@ -727,18 +704,15 @@ AFRAME.registerComponent('adaptive-controls', {
             this.switchToDesktopMode();
         });
 
-        // Pradinis nustatymas
         this.switchToDesktopMode();
     },
 
     switchToVRMode: function() {
-        // VR režime paslėpti gaze cursor
         const gazeCursor = document.querySelector('#gaze-cursor');
         if (gazeCursor) {
             gazeCursor.setAttribute('visible', false);
         }
 
-        // Rodyti VR kontrolierius
         const leftHand = document.querySelector('#leftHand');
         const rightHand = document.querySelector('#rightHand');
         if (leftHand) leftHand.setAttribute('visible', true);
@@ -746,13 +720,11 @@ AFRAME.registerComponent('adaptive-controls', {
     },
 
     switchToDesktopMode: function() {
-        // Desktop režime rodyti gaze cursor
         const gazeCursor = document.querySelector('#gaze-cursor');
         if (gazeCursor) {
             gazeCursor.setAttribute('visible', true);
         }
 
-        // Paslėpti VR kontrolierius
         const leftHand = document.querySelector('#leftHand');
         const rightHand = document.querySelector('#rightHand');
         if (leftHand) leftHand.setAttribute('visible', false);
@@ -760,7 +732,7 @@ AFRAME.registerComponent('adaptive-controls', {
     }
 });
 
-// Pridėti komponentą prie kameros
+
 document.addEventListener('DOMContentLoaded', function() {
     const camera = document.querySelector('#camera');
     if (camera) {
@@ -768,12 +740,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Inicializacija
-document.addEventListener('DOMContentLoaded', () => {
-    // Pradžioje rodyti kalbos pasirinkimo meniu
-    showInitialLanguageMenu();
 
-    // Pridėti smart-controls komponentą prie kameros
+document.addEventListener('DOMContentLoaded', () => {
     const camera = document.querySelector('#camera');
     if (camera) {
         camera.setAttribute('smart-controls', '');
@@ -781,18 +749,109 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Pridėti showman click komponentą (galima įdėti į vr_menu.js pabaigą)
+
 AFRAME.registerComponent('showman-click', {
     init: function() {
         this.el.addEventListener('click', (evt) => {
             console.log('Showman clicked!');
             console.log(isLanguageSelected);
             if (isLanguageSelected) {
-                console.log('Language selected, showing main menu');
-                showVRMenu('main_menu');
+                interruptShow();
+                playInterruptionSpeech(() => {
+                    if (typeof showVRMenu === 'function') {
+                        showVRMenu('main_menu');
+                    }
+                });
             }
-            
             evt.stopPropagation();
         });
     }
 });
+
+
+function updateVideoSource() {
+    if (!configData || !configData.video_files) {
+        return;
+    }
+    
+    const videoFile = configData.video_files[currentLanguage] || configData.video_files.en || 'video.mp4';
+    const video = document.querySelector('#tvvideo');
+    
+    if (video && video.src !== videoFile) {
+        console.log(`Pakeičiamas video failas į: ${videoFile}`);
+        video.src = videoFile;
+        video.load();
+    }
+}
+
+
+function createQuizMenu(questionData) {
+    const menuEntity = document.createElement('a-entity');
+    menuEntity.setAttribute('id', 'quizMenu');
+
+    const menuPos = calculateMenuPosition();
+    menuEntity.setAttribute('position', `${menuPos.x} ${menuPos.y} ${menuPos.z}`);
+    menuEntity.setAttribute('rotation', `0 ${menuPos.rotation} 0`);
+
+    const answers = [];
+    let answerNum = 1;
+    while (questionData[`answer${answerNum}`]) {
+        answers.push({
+            number: answerNum,
+            text: questionData[`answer${answerNum}`]
+        });
+        answerNum++;
+    }
+
+    const menuHeight = calculateMenuHeight(answers.length + 1); // +1 klausimui
+    const positions = generateButtonPositions(answers.length);
+
+    const background = document.createElement('a-plane');
+    background.setAttribute('width', '5');
+    background.setAttribute('height', menuHeight.toString());
+    background.setAttribute('color', '#000000');
+    background.setAttribute('opacity', '0.9');
+    background.setAttribute('material', 'transparent: true');
+    menuEntity.appendChild(background);
+
+    const questionText = document.createElement('a-troika-text');
+    questionText.setAttribute('value', questionData.question);
+    questionText.setAttribute('position', calculateTitlePosition(menuHeight, answers.length));
+    questionText.setAttribute('align', 'center');
+    questionText.setAttribute('color', 'white');
+    questionText.setAttribute('font-size', '0.12');
+    questionText.setAttribute('max-width', '4');
+    menuEntity.appendChild(questionText);
+
+    answers.forEach((answer, index) => {
+        if (index >= positions.length) return;
+
+        const buttonEntity = document.createElement('a-box');
+        buttonEntity.setAttribute('id', `quizBtn_${answer.number}`);
+        buttonEntity.setAttribute('width', '2.0');
+        buttonEntity.setAttribute('height', '0.4');
+        buttonEntity.setAttribute('depth', '0.1');
+        buttonEntity.setAttribute('position', positions[index].position);
+        buttonEntity.setAttribute('color', '#2a2a2a');
+
+        buttonEntity.setAttribute('quiz-button', {
+            answerNumber: answer.number,
+            color: '#2a2a2a'
+        });
+
+        const buttonText = document.createElement('a-troika-text');
+        buttonText.setAttribute('value', answer.text);
+        buttonText.setAttribute('position', '0 0 0.051');
+        buttonText.setAttribute('align', 'center');
+        buttonText.setAttribute('color', 'white');
+        buttonText.setAttribute('font-size', '0.09');
+        buttonText.setAttribute('max-width', '2.3');
+
+        buttonEntity.appendChild(buttonText);
+        menuEntity.appendChild(buttonEntity);
+
+        console.log('Quiz button created:', answer.number, answer.text);
+    });
+
+    return menuEntity;
+}

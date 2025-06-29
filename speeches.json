@@ -15,7 +15,9 @@
       {"text": "Jei naudoji įprastą kompiuterį,", "duration": 2},
       {"text": "vaikščiok naudodamas klavišus \"A\", \"W\", \"S\", and \"D\"!", "duration": 4},
       {"text": "Judink pelę, kad apsisuktum, ir spausk kairį mygtuką, kad atliktum veiksmą!", "duration": 6}
-    ]
+    ],
+    "speech_en": "speeches/controls_speech_en.mp3",
+    "speech_lt": "speeches/controls_speech_lt.mp3"
   },
   "initial_speech": {
     "en": [
@@ -26,10 +28,12 @@
     ],
     "lt": [
       {"text": "Labas!", "duration": 2},
-      {"text": "Mes ketiname tau papasakoti viską, ką žinome apie programinės įrangos procesus.", "duration": 4},
+      {"text": "Mes ketiname tau papasakoti viską, ką žinome apie programų inžinerijos procesus.", "duration": 4},
       {"text": "Paspausk mane, jei nori nutraukti šou ir kažko paklausti!", "duration": 4},
       {"text": "Taigi, ką norėtum padaryti!?", "duration": 2}
-    ]
+    ],
+    "speech_en": "speeches/james_hi_en.mp3",
+    "speech_lt": "speeches/james_hi_lt.mp3"
   },
   "interruption_speech": {
     "en": [
@@ -41,7 +45,9 @@
       {"text": "Stop!", "duration": 1},
       {"text": "Mūsų mielas žiūrovas nori kažko paprašyti!", "duration": 4},
       {"text": "Ei! Ką norėtum padaryti!?", "duration": 3}
-    ]
+    ],
+    "speech_en": "speeches/james_stop_en.mp3",
+    "speech_lt": "speeches/james_stop_lt.mp3"
   },
   "video_interruption_speech": {
     "en": [
@@ -51,41 +57,93 @@
     "lt": [
       {"text": "Stop!", "duration": 1},
       {"text": "Atėjo laikas kreiptis į auditoriją!", "duration": 3}
-    ]
+    ],
+    "speech_en": "speeches/james_ask_en.mp3",
+    "speech_lt": "speeches/james_ask_lt.mp3"
   },
-  "review_speech": {
+  "review_score_0": {
     "en": [
       {"text": "Ok! Let's review your answers!", "duration": 3},
-      {"text": "Your score is {score}!", "duration": 4}
+      {"text": "Your score is {score}!", "duration": 4},
+      {"text": "I think you can do better!", "duration": 4}
     ],
     "lt": [
       {"text": "Gerai! Peržiūrėkime jūsų atsakymus!", "duration": 3},
-      {"text": "Jūs surinkote taškų:{score}!", "duration": 4}
-    ]
+      {"text": "Jūs surinkote taškų: {score}!", "duration": 4},
+      {"text": "Manau, kad galite geriau!", "duration": 4}
+    ],
+    "speech_en": "speeches/james_score_0_en.mp3",
+    "speech_lt": "speeches/james_score_0_lt.mp3"
   },
-  "review_low_score": {
+  "review_score_1": {
     "en": [
-      {"text": "I think you can do better!", "duration": 3}
+      {"text": "Ok! Let's review your answers!", "duration": 3},
+      {"text": "Your score is {score}!", "duration": 4},
+      {"text": "I think you can do better!", "duration": 4}
     ],
     "lt": [
-      {"text": "Manau, kad galėtumėte daug geriau!", "duration": 3}
-    ]
+      {"text": "Gerai! Peržiūrėkime jūsų atsakymus!", "duration": 3},
+      {"text": "Jūs surinkote taškų: {score}!", "duration": 4},
+      {"text": "Manau, kad galite geriau!", "duration": 4}
+    ],
+    "speech_en": "speeches/james_score_1_en.mp3",
+    "speech_lt": "speeches/james_score_1_lt.mp3"
   },
-  "review_medium_score": {
+  "review_score_2": {
     "en": [
+      {"text": "Ok! Let's review your answers!", "duration": 3},
+      {"text": "Your score is {score}!", "duration": 4},
+      {"text": "I think you can do better!", "duration": 4}
+    ],
+    "lt": [
+      {"text": "Gerai! Peržiūrėkime jūsų atsakymus!", "duration": 3},
+      {"text": "Jūs surinkote taškų: {score}!", "duration": 4},
+      {"text": "Manau, kad galite geriau!", "duration": 4}
+    ],
+    "speech_en": "speeches/james_score_2_en.mp3",
+    "speech_lt": "speeches/james_score_2_lt.mp3"
+  },
+  "review_score_3": {
+    "en": [
+      {"text": "Ok! Let's review your answers!", "duration": 3},
+      {"text": "Your score is {score}!", "duration": 4},
       {"text": "Nice, but I think you can do better!", "duration": 3}
     ],
     "lt": [
-      {"text": "Neblogai, bet manau, kad galėtumėte daug geriau!", "duration": 3}
-    ]
+      {"text": "Gerai! Peržiūrėkime jūsų atsakymus!", "duration": 3},
+      {"text": "Jūs surinkote taškų: {score}!", "duration": 4},
+      {"text": "Gerai, bet galite dar geriau!", "duration": 3}
+    ],
+    "speech_en": "speeches/james_score_3_en.mp3",
+    "speech_lt": "speeches/james_score_3_lt.mp3"
   },
-  "review_high_score": {
+  "review_score_4": {
     "en": [
+      {"text": "Ok! Let's review your answers!", "duration": 3},
+      {"text": "Your score is {score}!", "duration": 4},
       {"text": "Perfect! You know a lot about software processes!", "duration": 4}
     ],
     "lt": [
-      {"text": "Nuostabu! Jūs daug žinote apie programinės įrangos procesus!", "duration": 4}
-    ]
+      {"text": "Gerai! Peržiūrėkime jūsų atsakymus!", "duration": 3},
+      {"text": "Jūs surinkote taškų: {score}!", "duration": 4},
+      {"text": "Puiku! Jūs daug žinote apie programų inžinerijos procesus!", "duration": 4}
+    ],
+    "speech_en": "speeches/james_score_4_en.mp3",
+    "speech_lt": "speeches/james_score_4_lt.mp3"
+  },
+  "review_score_5": {
+    "en": [
+      {"text": "Ok! Let's review your answers!", "duration": 3},
+      {"text": "Your score is {score}!", "duration": 4},
+      {"text": "Perfect! You know a lot about software processes!", "duration": 5}
+    ],
+    "lt": [
+      {"text": "Gerai! Peržiūrėkime jūsų atsakymus!", "duration": 3},
+      {"text": "Jūs surinkote taškų: {score}!", "duration": 4},
+      {"text": "Puiku! Jūs daug žinote apie programų inžinerijos procesus!", "duration": 5}
+    ],
+    "speech_en": "speeches/james_score_5_en.mp3",
+    "speech_lt": "speeches/james_score_5_lt.mp3"
   },
   "final_speech": {
     "en": [
@@ -97,7 +155,9 @@
       {"text": "Gaila, bet mūsų šou baigiasi...", "duration": 3},
       {"text": "Bet mes liekame čia, jei norėtum dar pasismaginti!", "duration": 4},
       {"text": "Ką norėtum daryti!?", "duration": 2}
-    ]
+    ],
+    "speech_en": "speeches/james_final_en.mp3",
+    "speech_lt": "speeches/james_final_lt.mp3"
   },
   "no_speech": {
     "en": [
@@ -105,7 +165,9 @@
     ],
     "lt": [
       {"text": "Ne! Deja, tai neteisingas atsakymas. Tęskime!", "duration": 5.5}
-    ]
+    ],
+    "speech_en": "speeches/james_no_en.mp3",
+    "speech_lt": "speeches/james_no_lt.mp3"
   },
   "yes_speech": {
     "en": [
@@ -113,7 +175,9 @@
     ],
     "lt": [
       {"text": "Taip! Visiškai teisingai! Tęskime!", "duration": 5}
-    ]
+    ],
+    "speech_en": "speeches/james_yes_en.mp3",
+    "speech_lt": "speeches/james_yes_lt.mp3"
   },
   "final_quiz_speech": {
     "en": [
@@ -125,6 +189,8 @@
       {"text": "Mūsų laida beveik bagėsi.", "duration": 2},
       {"text": "Pažiūrėkime, ką jūs išmokote!", "duration": 2},
       {"text": "Pamėginkite atsakyti į 5 klausimus iš viso šou.", "duration": 4}
-    ]
+    ],
+    "speech_en": "speeches/james_final_en.mp3",
+    "speech_lt": "speeches/james_final_lt.mp3"
   }
 }

@@ -1,28 +1,108 @@
 {
+  "video_files": {
+    "en": "video.mp4",
+    "lt": "video.mp4"
+  },
+  "menus": {
+    "en": {
+      "main_menu": {
+        "question": "What would you like to do now?",
+        "answer1": "Start the show!",
+        "answer2": "Continue show!",
+        "answer3": "Choose a topic!",
+        "answer4": "Show next topic!",
+        "answer5": "Show final quiz!",
+        "answer6": "Explain controls!"
+      },
+      "language_menu": {
+        "question": "Choose a language!",
+        "answer1": "Lithuanian",
+        "answer2": "English"
+      }
+    },
+    "lt": {
+      "main_menu": {
+        "question": "Ką norėtumėte daryti dabar?",
+        "answer1": "Pradėti šou!",
+        "answer2": "Tęsti šou!",
+        "answer3": "Pasirinkti temą!",
+        "answer4": "Rodyti kitą temą!",
+        "answer5": "Rodyti galutinį testą!",
+        "answer6": "Paaiškink valdymą!"
+      },
+      "language_menu": {
+        "question": "Pasirinkite kalbą!",
+        "answer1": "Lietuvių",
+        "answer2": "Anglų"
+      }
+    }
+  },
   "topics": [
     {
-      "position": 62,
-      "name": "What is a software process"
+      "id": "software_process",
+      "position": {
+        "en": 62,
+        "lt": 62
+      },
+      "name": {
+        "en": "What is a software process?",
+        "lt": "Kas yra programų inžinerijos procesas?"
+      }
     },
     {
-      "position": 243.5,
-      "name": "Waterfall model"
+      "id": "waterfall_model",
+      "position": {
+        "en": 243.5,
+        "lt": 243.5
+      },
+      "name": {
+        "en": "Waterfall model",
+        "lt": "Krioklio modelis"
+      }
     },
     {
-      "position": 380.5,
-      "name": "Spiral model"
+      "id": "spiral_model",
+      "position": {
+        "en": 380.5,
+        "lt": 380.5
+      },
+      "name": {
+        "en": "Spiral model",
+        "lt": "Spiralinė metodika"
+      }
     },
     {
-      "position": 523,
-      "name": "Prototyping"
+      "id": "prototyping",
+      "position": {
+        "en": 523,
+        "lt": 523
+      },
+      "name": {
+        "en": "Prototyping",
+        "lt": "Prototipavimas"
+      }
     },
     {
-      "position": 747,
-      "name": "RUP model"
+      "id": "rup_model",
+      "position": {
+        "en": 747,
+        "lt": 747
+      },
+      "name": {
+        "en": "RUP model",
+        "lt": "RUP modelis"
+      }
     },
     {
-      "position": 962,
-      "name": "Process improvement"
+      "id": "process_improvement",
+      "position": {
+        "en": 962,
+        "lt": 962
+      },
+      "name": {
+        "en": "Process improvement",
+        "lt": "Proceso tobulinimas"
+      }
     }
   ],
   "video_interruptions": {
