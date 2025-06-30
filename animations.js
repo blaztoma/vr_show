@@ -43,7 +43,7 @@ class CharacterAnimationManager {
   init() {
     document.addEventListener('DOMContentLoaded', () => {
       console.log('Initializing character animations...');
-      setTimeout(() => this.initializeAllCharacters(), 3000);
+      setTimeout(() => this.initializeAllCharacters(), 100);
     });
   }
 

@@ -12,6 +12,23 @@ let scheduledEvents = [];
 let currentQuestionIndex = 0;
 let quizScore = 0;
 let finalQuizQuestions = [];
+let videoInterruptionData = null;
+let currentInterruptionIndex = 0;
+let isVideoInterruptionActive = false;
+let lastInterruptionCheck = -1;
+
+
+function initializeVideoInterruptions() {
+    if (!configData || !configData.video_interruptions) {
+        console.log('Video interruptions data not found');
+        return;
+    }
+
+    videoInterruptionData = configData.video_interruptions[currentLanguage];
+    currentInterruptionIndex = 0;
+    isVideoInterruptionActive = true;
+    lastInterruptionCheck = -1;
+}
 
 
 function setLanguage(lang) {
@@ -20,6 +37,40 @@ function setLanguage(lang) {
     isLanguageSelected = true;
     console.log('Kalba pasirinkta:', isLanguageSelected);
 }
+
+
+function updateVideoSource() {
+    if (!configData || !configData.video_files) {
+        return;
+    }
+
+    const videoFile = configData.video_files[currentLanguage] || configData.video_files.en || 'video.mp4';
+    const video = document.querySelector('#tvvideo');
+
+    if (video && video.src !== videoFile) {
+        console.log(`Pakeičiamas video failas į: ${videoFile}`);
+        video.src = videoFile;
+        video.load();
+    }
+}
+
+
+function interruptShow() {
+    const video = document.querySelector('#tvvideo');
+
+    if (video) {
+        video.pause();
+    }
+
+    if (typeof stopSpeechSync === 'function') {
+        stopSpeechSync();
+    }
+    if (typeof stopTalking === 'function') {
+        stopTalking('Tomas');
+        stopTalking('Lina');
+    }
+}
+
 
 function startShow() {
     const video = document.querySelector('#tvvideo');
@@ -68,8 +119,6 @@ function showTopic(topicId) {
         return;
     }
 
-    console.log('Rasta tema:', topic);
-
     const topicDisplayName = topic.name[currentLanguage] || topic.name.en || topic.id;
     const topicPosition = topic.position[currentLanguage] || topic.position.en || 0;
 
@@ -81,9 +130,6 @@ function showTopic(topicId) {
         plane.setAttribute('material', 'opacity', 1);
 
         video.play().then(() => {
-            console.log(`Video paleistas nuo ${topicPosition} sekundės (${currentLanguage})`);
-            showNotification(`Rodoma tema: ${topicDisplayName} (${topicPosition}s)`);
-
             if (typeof startSpeechSync === 'function') {
                 startSpeechSync();
             }
@@ -204,6 +250,152 @@ function getCurrentSpeechData() {
     }
 }
 
+
+function checkForVideoInterruption(currentTime) {
+    if (!isVideoInterruptionActive || !videoInterruptionData) {
+        return;
+    }
+
+    if (currentInterruptionIndex < videoInterruptionData.length) {
+        const nextInterruptionTime = videoInterruptionData[currentInterruptionIndex];
+        if (currentTime >= nextInterruptionTime && lastInterruptionCheck < nextInterruptionTime) {
+            console.log(`Video interruption triggered at ${currentTime}s (target: ${nextInterruptionTime}s)`);
+            triggerVideoInterruption();
+            lastInterruptionCheck = nextInterruptionTime;
+        }
+    }
+}
+
+function triggerVideoInterruption() {
+    const video = document.querySelector('#tvvideo');
+    if (video) {
+        video.pause();
+    }
+
+    if (typeof stopTalking === 'function') {
+        stopTalking('Tomas');
+        stopTalking('Lina');
+    }
+
+    const audioFile = speechData["video_interruption_speech"][`speech_${currentLanguage}`];
+    const interruptSpeech = speechData["video_interruption_speech"][currentLanguage];
+    const audioElement = audioFile ? document.createElement('audio') : null;
+    if (audioElement) {
+        audioElement.src = audioFile
+    }
+
+    playbackSpeech('showman', interruptSpeech, audioElement, () => {
+        setTimeout(() => {
+            if (typeof showVRMenu === 'function') {
+                askInterruptionQuestion(currentInterruptionIndex);
+                currentInterruptionIndex++;
+            }
+        }, 200);
+    });
+}
+
+
+function askInterruptionQuestion(questionIndex) {
+    if (!quizData || !quizData.inter_quiz || !quizData.inter_quiz[currentLanguage]) {
+        console.error('Quiz data not available for interruption question');
+        return;
+    }
+
+    const questionKeys = Object.keys(quizData.inter_quiz[currentLanguage]);
+
+    if (questionIndex >= questionKeys.length) {
+        console.warn('No more questions available for interruption');
+        return;
+    }
+
+    const questionKey = questionKeys[questionIndex];
+    let questionData = quizData.inter_quiz[currentLanguage][questionKey];
+
+    if (!questionData) {
+        console.error('Question data not found:', questionKey);
+        return;
+    }
+
+    const processedQuestionData = shuffleAnswers(questionData);
+
+    if (typeof sayText === 'function') {
+        sayText('Rimas', processedQuestionData.question);
+    }
+
+    if (typeof playQuestionSpeech === 'function') {
+        playQuestionSpeech(processedQuestionData, () => {
+            if (typeof stopTalking === 'function') {
+                stopTalking('Rimas');
+            }
+            showQuestionHud(processedQuestionData, 'interruption');
+        });
+    } else {
+        setTimeout(() => {
+            if (typeof stopTalking === 'function') {
+                stopTalking('Rimas');
+            }
+            showQuestionHud(processedQuestionData, 'interruption');
+        }, 3000);
+    }
+
+}
+
+
+function handleInterruptionAnswer(answerNumber, isCorrect) {
+    console.log(`Interruption answer: ${answerNumber}, Correct: ${isCorrect}`);
+
+    const clickedButton = document.querySelector(`#quizBtn_${answerNumber}`);
+    if (clickedButton) {
+        const color = isCorrect ? '#4CAF50' : '#F44336';
+        clickedButton.setAttribute('material', 'color', color);
+
+        if (!isCorrect) {
+            const allButtons = document.querySelectorAll('[quiz-button]');
+            allButtons.forEach(button => {
+                const buttonComponent = button.components['quiz-button'];
+                if (buttonComponent && buttonComponent.data.isCorrect) {
+                    setTimeout(() => {
+                        button.setAttribute('material', 'color', '#4CAF50');
+                    }, 500);
+                }
+            });
+        }
+
+        setTimeout(() => {
+            const quizMenu = document.getElementById('quizMenu');
+            if (quizMenu) {
+                quizMenu.remove();
+            }
+            if (isCorrect) {
+                const audioFile = speechData["yes_speech"][`speech_${currentLanguage}`];
+                const yesSpeech = speechData["yes_speech"][currentLanguage];
+                const audioElement = audioFile ? document.createElement('audio') : null;
+                if (audioElement) {
+                    audioElement.src = audioFile
+                }
+                playbackSpeech('showman', yesSpeech, audioElement, () => {
+                    setTimeout(() => {
+                        continueShow();
+                    }, 200);
+                });
+            } else {
+                const audioFile = speechData["no_speech"][`speech_${currentLanguage}`];
+                const noSpeech = speechData["no_speech"][currentLanguage];
+                const audioElement = audioFile ? document.createElement('audio') : null;
+                if (audioElement) {
+                    audioElement.src = audioFile
+                }
+                playbackSpeech('showman', noSpeech, audioElement, () => {
+                    setTimeout(() => {
+                        continueShow();
+                    }, 200);
+                });
+            }
+        }, 1500);
+    }
+}
+
+
 function syncSpeech() {
     const speechData = getCurrentSpeechData();
 
@@ -255,6 +447,7 @@ function syncSpeech() {
             }
         }
     }
+    checkForVideoInterruption(currentTime);
 }
 
 function startSpeechSync() {
@@ -271,63 +464,56 @@ function stopSpeechSync() {
     }
 }
 
-// === TEKSTO RODYMO FUNKCIJOS ===
+function getCharacterElementIds(character) {
+    const normalizedCharacter = character.toLowerCase();
+
+    switch(normalizedCharacter) {
+        case 'tomas':
+        case 'man':
+            return {
+                textElementId: '#manText',
+                bubbleId: '#manBubble'
+            };
+        case 'rimas':
+        case 'showman':
+            return {
+                textElementId: '#showmanText',
+                bubbleId: '#showmanBubble'
+            };
+        case 'lina':
+        case 'woman':
+            return {
+                textElementId: '#womanText',
+                bubbleId: '#womanBubble'
+            };
+        default:
+            return null;
+    }
+}
+
 
 function sayText(character, text) {
-    let textElementId, bubbleId;
+    const elementIds = getCharacterElementIds(character);
+    const { textElementId, bubbleId } = elementIds;
 
-    // Nustatyti tinkamus ID pagal veikėją
-    if (character === 'Tomas') {
-        textElementId = '#manText';
-        bubbleId = '#manBubble';
-    } else if (character === 'Rimas' || character === 'showman') {
-        textElementId = '#showmanText';
-        bubbleId = '#showmanBubble';
-    } else if (character === 'Lina') {
-        textElementId = '#womanText';
-        bubbleId = '#womanBubble';
-    } else {
-        console.error('Nežinomas veikėjas:', character);
-        return;
-    }
-
-    // Atnaujinti tekstą
     const textElement = document.querySelector(textElementId);
     if (textElement) {
         textElement.setAttribute('troika-text', 'value', text);
         textElement.setAttribute('visible', true);
 
-        // Parodyti burbulą
         const bubbleElement = document.querySelector(bubbleId);
         if (bubbleElement) {
             bubbleElement.setAttribute('visible', true);
         }
     }
 
-    // Paleisti kalbėjimo animaciją
     startCharacterTalking(character);
-
-    console.log(`${character}: ${text}`);
 }
 
 function stopTalking(character) {
-    let textElementId, bubbleId;
+    const elementIds = getCharacterElementIds(character);
+    const { textElementId, bubbleId } = elementIds;
 
-    if (character === 'Tomas') {
-        textElementId = '#manText';
-        bubbleId = '#manBubble';
-    } else if (character === 'Rimas' || character === 'showman') {
-        textElementId = '#showmanText';
-        bubbleId = '#showmanBubble';
-    } else if (character === 'Lina') {
-        textElementId = '#womanText';
-        bubbleId = '#womanBubble';
-    } else {
-        console.error('Nežinomas veikėjas:', character);
-        return;
-    }
-
-    // Paslėpti tekstą ir burbulą
     const textElement = document.querySelector(textElementId);
     if (textElement) {
         textElement.setAttribute('visible', false);
@@ -341,23 +527,15 @@ function stopTalking(character) {
         }
     }
 
-    // Sustabdyti kalbėjimo animaciją
     stopCharacterTalking(character);
-
-    console.log(`${character} stops talking`);
 }
 
 function cancelScheduledEvents() {
-    // Atšaukti visus timeout'us
     scheduledEvents.forEach(eventId => {
         clearTimeout(eventId);
     });
     scheduledEvents = [];
-    
-    // Sustabdyti video sinchronizaciją
     stopSpeechSync();
-    
-    console.log('Visi suplanuoti įvykiai atšaukti');
 }
 
 function playbackSpeech(characterName, speechTextData, audioElement, callback) {
@@ -385,15 +563,12 @@ function playbackSpeech(characterName, speechTextData, audioElement, callback) {
         });
     }
     
-    // Suplanuoti kiekvienos eilutės rodymą ir paslėpimą
     speechTextData.forEach(line => {
-        // Suplanuoti teksto rodymą
         const sayEvent = setTimeout(() => {
             sayText(characterName, line.text);
         }, delay * 1000);
         scheduledEvents.push(sayEvent);
         
-        // Suplanuoti teksto paslėpimą
         const stopEvent = setTimeout(() => {
             stopTalking(characterName);
         }, (delay + line.duration) * 1000);
@@ -402,21 +577,19 @@ function playbackSpeech(characterName, speechTextData, audioElement, callback) {
         delay += line.duration;
     });
 
-    // Suplanuoti animacijos perjungimą į "think"
     const thinkEvent = setTimeout(() => {
         console.log(`${characterName} starts thinking`);
         if (typeof animationManager !== 'undefined' && animationManager.setThinking) {
             animationManager.setThinking(characterName);
         }
-    }, (delay + 0.1) * 1000); // Šiek tiek vėliau nei finalStopEvent
+    }, (delay + 0.1) * 1000);
     scheduledEvents.push(thinkEvent);
     
-    // Suplanuoti callback'ą
     if (callback && typeof callback === 'function') {
         const callbackEvent = setTimeout(() => {
             console.log(`${characterName} speech completed`);
             callback();
-        }, (delay + 0.2) * 1000); // Dar šiek tiek vėliau
+        }, (delay + 0.2) * 1000);
         scheduledEvents.push(callbackEvent);
     }
 }
@@ -529,64 +702,6 @@ function stopVideo() {
     console.log('Video sustabdytas');
 }
 
-function interruptShow() {
-    stopVideo();
-    showNotification('Show interrupted');
-    console.log('Šou nutrauktas');
-}
-
-
-async function loadSpeeches() {
-    try {
-        const response = await fetch('speeches.json');
-        speechData = await response.json();
-        console.log('Pokalbių duomenys užkrauti sėkmingai!');
-    } catch (error) {
-        console.error('Klaida kraunant pokalbio duomenis:', error);
-    }
-}
-
-async function loadDialogues() {
-    try {
-        const [response_woman_lt, response_woman_en, response_man_lt, response_man_en] = await Promise.all([
-            fetch('woman_lt.json'),
-            fetch('woman_en.json'),
-            fetch('man_lt.json'),
-            fetch('man_en.json')
-        ]);
-        
-        woman_lt = await response_woman_lt.json();
-        woman_en = await response_woman_en.json();
-        man_lt = await response_man_lt.json();
-        man_en = await response_man_en.json();
-        
-        console.log('Dialogų duomenys užkrauti sėkmingai!');
-    } catch (error) {
-        console.error('Klaida kraunant pokalbio duomenis:', error);
-    }
-}
-
-async function loadConfig() {
-    try {
-        const response = await fetch('config.json');
-        configData = await response.json();
-        console.log('Konfigūracijos duomenys užkrauti sėkmingai!');
-    } catch (error) {
-        console.error('Klaida kraunant konfigūracijos duomenis:', error);
-    }
-}
-
-async function loadQuizData() {
-    try {
-        const response = await fetch('quiz_data.json');
-        quizData = await response.json();
-        console.log('Kvizų duomenys užkrauti sėkmingai!');
-        return quizData;
-    } catch (error) {
-        console.error('Klaida kraunant kvizų duomenis:', error);
-        return null;
-    }
-}
 
 document.addEventListener('keydown', function(e) {
     if (e.code === 'Escape') {
@@ -611,27 +726,6 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-async function loadAllData() {
-    try {
-        const [configResult, speechResult, quizResult] = await Promise.all([
-            loadConfig(),
-            loadSpeeches(),
-            loadQuizData(),
-            loadDialogues()
-        ]);
-
-        console.log('Visi duomenys užkrauti:', {
-            config: !!configResult,
-            speeches: !!speechResult,
-            quizzes: !!quizResult
-        });
-
-        return true;
-    } catch (error) {
-        console.error('Klaida kraunant duomenis:', error);
-        return false;
-    }
-}
 
 function showFinalQuiz() {
     console.log('Pradedamas galutinis kvizas');
@@ -672,43 +766,45 @@ function askNextQuestion() {
     }
 
     const questionKey = finalQuizQuestions[currentQuestionIndex];
-    const questionData = quizData.final_quiz[currentLanguage][questionKey];
+    let questionData = quizData.final_quiz[currentLanguage][questionKey];
 
     if (!questionData) {
         console.error('Klausimo duomenys nerasti:', questionKey);
         return;
     }
 
-    console.log(`Klausimas ${currentQuestionIndex + 1}:`, questionData.question);
+    const processedQuestionData = shuffleAnswers(questionData);
+    
+    console.log(`Klausimas ${currentQuestionIndex + 1}:`, processedQuestionData.question);
 
     if (typeof sayText === 'function') {
-        sayText('Rimas', questionData.question);
+        sayText('Rimas', processedQuestionData.question);
     }
 
     if (typeof playQuestionSpeech === 'function') {
-        playQuestionSpeech(questionData, () => {
+        playQuestionSpeech(processedQuestionData, () => {
             if (typeof stopTalking === 'function') {
                 stopTalking('Rimas');
             }
-            showQuestionHud(questionData);
+            showQuestionHud(processedQuestionData, 'final');
         });
     } else {
         setTimeout(() => {
             if (typeof stopTalking === 'function') {
                 stopTalking('Rimas');
             }
-            showQuestionHud(questionData);
+            showQuestionHud(processedQuestionData, 'final');
         }, 3000);
     }
 }
 
 
-function showQuestionHud(questionData) {
+function showQuestionHud(questionData, quizType = 'final') {
     if (typeof stopTalking === 'function') {
         stopTalking('showman');
     }
 
-    const quizMenu = createQuizMenu(questionData);
+    const quizMenu = createQuizMenu(questionData, quizType);
 
     if (quizMenu) {
         const scene = document.querySelector('a-scene');
@@ -724,22 +820,10 @@ function showQuestionHud(questionData) {
     }
 }
 
-function handleQuizAnswer(answerNumber) {
+function handleQuizAnswer(answerNumber, isCorrect) {
     console.log(`Pasirinktas atsakymas: ${answerNumber}`);
-
-    const currentQuestionKey = finalQuizQuestions[currentQuestionIndex];
-    const questionData = quizData.final_quiz[currentLanguage][currentQuestionKey];
-    const correctAnswerKey = questionData.correct_answer;
-    const selectedAnswerKey = `answer${answerNumber}`;
-    
-    // Palyginti raktas su raktu
-    const isCorrect = selectedAnswerKey === correctAnswerKey;
-    
-    console.log(`Teisingas atsakymas: ${correctAnswerKey} (${questionData[correctAnswerKey]})`);
-    console.log(`Pasirinkta: ${selectedAnswerKey} (${questionData[selectedAnswerKey]})`);
     console.log(`Teisingai: ${isCorrect}`);
     
-    // Atnaujinti balus
     if (isCorrect) {
         quizScore++;
     }
@@ -748,14 +832,18 @@ function handleQuizAnswer(answerNumber) {
     if (clickedButton) {
         const color = isCorrect ? '#4CAF50' : '#F44336'; // Žalias/Raudonas
         clickedButton.setAttribute('material', 'color', color);
+        
         if (!isCorrect) {
-            const correctAnswerNumber = correctAnswerKey.replace('answer', '');
-            const correctButton = document.querySelector(`#quizBtn_${correctAnswerNumber}`);
-            if (correctButton) {
-                setTimeout(() => {
-                    correctButton.setAttribute('material', 'color', '#4CAF50');
-                }, 500);
-            }
+            // Rasti teisingą mygtuką ir paryškinti jį
+            const allButtons = document.querySelectorAll('[quiz-button]');
+            allButtons.forEach(button => {
+                const buttonComponent = button.components['quiz-button'];
+                if (buttonComponent && buttonComponent.data.isCorrect) {
+                    setTimeout(() => {
+                        button.setAttribute('material', 'color', '#4CAF50');
+                    }, 500);
+                }
+            });
         }
         
         setTimeout(() => {
@@ -776,27 +864,35 @@ function handleQuizAnswer(answerNumber) {
 
 // Funkcija atsakymų maišymui (jei reikės ateityje)
 function shuffleAnswers(questionData) {
+    if (!questionData.shuffle) {
+        return questionData;
+    }
+    
     const answers = [];
     let answerNum = 1;
-    
-    // Surinkti visus atsakymus
+
     while (questionData[`answer${answerNum}`]) {
         answers.push({
-            key: `answer${answerNum}`,
+            originalKey: `answer${answerNum}`,
             text: questionData[`answer${answerNum}`],
             isCorrect: questionData.correct_answer === `answer${answerNum}`
         });
         answerNum++;
     }
-    
-    // Sumaišyti atsakymus
+
     for (let i = answers.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [answers[i], answers[j]] = [answers[j], answers[i]];
     }
-    
-    // Sukurti naują objektą su sumaišytais atsakymais
+
     const shuffledQuestion = { ...questionData };
+    
+    let clearNum = 1;
+    while (shuffledQuestion[`answer${clearNum}`]) {
+        delete shuffledQuestion[`answer${clearNum}`];
+        clearNum++;
+    }
+    
     answers.forEach((answer, index) => {
         const newKey = `answer${index + 1}`;
         shuffledQuestion[newKey] = answer.text;
@@ -808,18 +904,6 @@ function shuffleAnswers(questionData) {
     return shuffledQuestion;
 }
 
-// Funkcija intarpų kvizui
-function handleInterQuizAnswer(answerNumber, questionKey) {
-    const questionData = quizData.inter_quiz[currentLanguage][questionKey];
-    const correctAnswerKey = questionData.correct_answer;
-    const selectedAnswerKey = `answer${answerNumber}`;
-    
-    const isCorrect = selectedAnswerKey === correctAnswerKey;
-    
-    console.log(`Inter kvizas - Teisingas: ${correctAnswerKey}, Pasirinkta: ${selectedAnswerKey}, Teisingai: ${isCorrect}`);
-    
-    return isCorrect;
-}
 
 function playQuestionSpeech(questionData, callback) {
     if (!questionData.audio) {
@@ -905,13 +989,6 @@ function showQuizResults() {
     }
 }
 
-window.addEventListener('load', () => {
-    loadAllData().then(loaded => {
-        initializeAllMenus();
-        // createTopicMenusWhenReady();
-        showInitialLanguageMenu();
-    });
-});
 
 window.playbackSpeech = playbackSpeech;
 window.playSpeechFromData = playSpeechFromData;

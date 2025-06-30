@@ -1,32 +1,10 @@
 let currentMenuType = 'language_menu';
-let isVRMenuVisible = false;
+let isMenuVisible = false
 let currentLanguage = 'en';
 let isLanguageSelected = false;
 let prebuiltMenus = {};
-
 let menu_translations = null;
 
-function checkConfigData() {
-    console.log('ConfigData status:', {
-        configData: configData,
-        topics: configData?.topics,
-        topicsLength: configData?.topics?.length,
-        menus: configData?.menus
-    });
-
-    if (!configData) {
-        console.log('configData nėra užkrautas');
-        return false;
-    }
-
-    if (!configData.topics) {
-        console.log('configData.topics nėra užkrautas');
-        return false;
-    }
-
-    console.log('ConfigData ir topics užkrauti teisingai');
-    return true;
-}
 
 function initializeAllMenus() {
     console.log('Building all VR menus...');
@@ -70,6 +48,7 @@ function getTranslationForLanguage(category, key, language) {
     return menu_translations[language]?.[category]?.[key] || `Missing: ${category}.${key}`;
 }
 
+
 function getMenuButtonsForLanguage(menuType, language) {
     if (menuType === 'topic_menu') {
         return generateTopicMenuButtonsForLanguage(language);
@@ -96,6 +75,7 @@ function getMenuButtonsForLanguage(menuType, language) {
 
     return buttons;
 }
+
 
 function generateTopicMenuButtonsForLanguage(language) {
     if (!configData || !configData.topics) {
@@ -273,7 +253,7 @@ function calculateMenuPosition() {
     direction.y = 0;
     direction.normalize();
 
-    const distance = 5; // Pakeista iš 3 į 5 - dabar meniu bus toliau
+    const distance = 5;
     const rotation = Math.atan2(-direction.x, -direction.z) * (180 / Math.PI);
     return {
         x: cameraPosition.x + direction.x * distance,
@@ -284,75 +264,17 @@ function calculateMenuPosition() {
 }
 
 
+// Universalus kontrolių komponentas, kuris palaiko ir desktop, ir VR
 AFRAME.registerComponent('smart-controls', {
-    init: function() {
-        this.sceneEl = this.el.sceneEl;
-        this.gazeCursor = null;
+    init: function () {
         this.desktopRaycaster = null;
-
-        // Klausytis VR režimo pasikeitimų
-        this.sceneEl.addEventListener('enter-vr', this.onEnterVR.bind(this));
-        this.sceneEl.addEventListener('exit-vr', this.onExitVR.bind(this));
-
-        // Pradinis nustatymas - desktop režimas
-        setTimeout(() => {
-            this.setupDesktopMode();
-        }, 100);
-    },
-
-    onEnterVR: function() {
-        console.log('Įjungtas VR režimas - naudojamas gaze valdymas');
-        this.setupVRMode();
-    },
-
-    onExitVR: function() {
-        console.log('Išjungtas VR režimas - naudojamas pelės valdymas');
+        this.gazeCursor = null;
+        
+        // Iš karto nustatyti desktop režimą
         this.setupDesktopMode();
-    },
-
-    setupVRMode: function() {
-        if (this.desktopRaycaster && this.desktopRaycaster.parentNode) {
-            this.desktopRaycaster.parentNode.removeChild(this.desktopRaycaster);
-        }
-
-        if (!this.gazeCursor) {
-            this.gazeCursor = document.createElement('a-cursor');
-            this.gazeCursor.setAttribute('position', '0 0 -0.5');
-            this.gazeCursor.setAttribute('geometry', {
-                primitive: 'ring',
-                radiusInner: 0.02,
-                radiusOuter: 0.03
-            });
-            this.gazeCursor.setAttribute('material', {
-                color: 'white',
-                shader: 'flat',
-                opacity: 0.8
-            });
-            this.gazeCursor.setAttribute('cursor', {
-                fuse: true,
-                fuseTimeout: 1500
-            });
-            this.gazeCursor.setAttribute('raycaster', 'objects: .clickable');
-
-            this.gazeCursor.setAttribute('animation__click', {
-                property: 'scale',
-                startEvents: 'click',
-                easing: 'easeInCubic',
-                dur: 150,
-                from: '0.1 0.1 0.1',
-                to: '1 1 1'
-            });
-            this.gazeCursor.setAttribute('animation__fusing', {
-                property: 'scale',
-                startEvents: 'fusing',
-                easing: 'easeInCubic',
-                dur: 1500,
-                from: '1 1 1',
-                to: '0.1 0.1 0.1'
-            });
-        }
-
-        this.el.appendChild(this.gazeCursor);
+        
+        // Nustatyti VR režimo klausytojus
+        this.setupVRModeListener();
     },
 
     setupDesktopMode: function() {
@@ -372,15 +294,86 @@ AFRAME.registerComponent('smart-controls', {
         }
 
         this.el.appendChild(this.desktopRaycaster);
+        console.log('Desktop controls activated');
     },
 
-    remove: function() {
-        if (this.gazeCursor && this.gazeCursor.parentNode) {
-            this.gazeCursor.parentNode.removeChild(this.gazeCursor);
-        }
+    setupVRModeListener: function () {
+        const sceneEl = this.el.sceneEl;
+        
+        sceneEl.addEventListener('enter-vr', () => {
+            console.log('Entering VR mode - switching to laser controls');
+            this.deactivateDesktopMode();
+            this.activateVRLasers();
+        });
+
+        sceneEl.addEventListener('exit-vr', () => {
+            console.log('Exiting VR mode - switching back to desktop controls');
+            this.deactivateVRLasers();
+            this.setupDesktopMode();
+        });
+    },
+
+    deactivateDesktopMode: function() {
         if (this.desktopRaycaster && this.desktopRaycaster.parentNode) {
             this.desktopRaycaster.parentNode.removeChild(this.desktopRaycaster);
         }
+        console.log('Desktop controls deactivated');
+    },
+
+    activateVRLasers: function () {
+        const leftHand = document.querySelector('#leftHand');
+        const rightHand = document.querySelector('#rightHand');
+        
+        if (leftHand) {
+            this.setupLaserForHand(leftHand, 'left');
+        }
+        
+        if (rightHand) {
+            this.setupLaserForHand(rightHand, 'right');
+        }
+    },
+
+    setupLaserForHand: function (hand, side) {
+        // Atnaujinti raycaster parametrus
+        hand.setAttribute('raycaster', {
+            objects: '.clickable',
+            far: 30,
+            interval: 100
+        });
+        
+        // Pridėti laser liniją
+        hand.setAttribute('line', {
+            color: '#ff0000',
+            opacity: 0.75,
+            visible: false
+        });
+        
+        // Pridėti laser matomumo komponentą
+        hand.setAttribute('vr-laser-visibility', '');
+        
+        console.log(`${side} hand laser configured`);
+    },
+
+    deactivateVRLasers: function () {
+        const leftHand = document.querySelector('#leftHand');
+        const rightHand = document.querySelector('#rightHand');
+        
+        if (leftHand) {
+            leftHand.setAttribute('line', 'visible', false);
+            leftHand.removeAttribute('vr-laser-visibility');
+        }
+        
+        if (rightHand) {
+            rightHand.setAttribute('line', 'visible', false);
+            rightHand.removeAttribute('vr-laser-visibility');
+        }
+        
+        console.log('VR laser controls deactivated');
+    },
+
+    remove: function() {
+        this.deactivateDesktopMode();
+        this.deactivateVRLasers();
     }
 });
 
@@ -394,13 +387,8 @@ AFRAME.registerComponent('vr-menu-button', {
     },
 
     init: function() {
-        // Pridėti clickable klasę
         this.el.classList.add('clickable');
 
-        // Debug log
-        console.log('VR Menu Button created:', this.data.answerNumber);
-
-        // Desktop ir VR click event
         this.el.addEventListener('click', (evt) => {
             console.log('Button clicked:', this.data.answerNumber);
             this.handleClick();
@@ -434,7 +422,6 @@ AFRAME.registerComponent('vr-menu-button', {
 
         console.log('VR Menu action:', menuType, answerNumber);
 
-        // Vizualus feedback
         this.el.setAttribute('animation', {
             property: 'scale',
             from: '1 1 1',
@@ -470,14 +457,16 @@ AFRAME.registerComponent('vr-menu-button', {
 AFRAME.registerComponent('quiz-button', {
     schema: {
         answerNumber: {type: 'int'},
-        color: {type: 'color', default: '#2a2a2a'}
+        color: {type: 'color', default: '#2a2a2a'},
+        isCorrect: {type: 'boolean', default: false},
+        quizType: {type: 'string', default: 'final'}
     },
 
     init: function() {
         this.el.classList.add('clickable');
 
         this.el.addEventListener('click', (evt) => {
-            console.log('Quiz answer clicked:', this.data.answerNumber);
+            console.log('Quiz answer clicked:', this.data.answerNumber, 'isCorrect:', this.data.isCorrect);
             this.handleClick();
         });
 
@@ -512,8 +501,10 @@ AFRAME.registerComponent('quiz-button', {
 
     handleClick: function() {
         const answerNumber = this.data.answerNumber;
+        const isCorrect = this.data.isCorrect;
+        const quizType = this.data.quizType;
 
-        console.log('Quiz answer selected:', answerNumber);
+        console.log(`Quiz answer selected: ${answerNumber}, Correct: ${isCorrect}, Type: ${quizType}`);
 
         this.el.setAttribute('animation', {
             property: 'scale',
@@ -529,7 +520,13 @@ AFRAME.registerComponent('quiz-button', {
             this.el.setAttribute('scale', '1 1 1');
         }, 100);
 
-        handleQuizAnswer(answerNumber);
+        if (quizType === 'interruption') {
+            handleInterruptionAnswer(answerNumber, isCorrect);
+        } else if (quizType === 'final') {
+            handleQuizAnswer(answerNumber, isCorrect);
+        } else {
+            console.error('Unknown quiz type:', quizType);
+        }
     }
 });
 
@@ -585,15 +582,6 @@ function hideVRMenu() {
 }
 
 
-function toggleVRMenu() {
-    if (isVRMenuVisible) {
-        hideVRMenu();
-    } else {
-        showVRMenu('main_menu');
-    }
-}
-
-
 function updateMenuPosition(menuEntity) {
     const menuPos = calculateMenuPosition();
     menuEntity.setAttribute('position', `${menuPos.x} ${menuPos.y} ${menuPos.z}`);
@@ -603,7 +591,7 @@ function updateMenuPosition(menuEntity) {
 
 function handleMainMenuAnswer(answerNumber) {
     switch(answerNumber) {
-        case 1: // Pradėti šou!
+        case 1:
             startShow();
             break;
         case 2:
@@ -653,42 +641,6 @@ function handleLanguageMenuAnswer(answerNumber) {
     console.log(`Kalba pasirinkta: ${currentLanguage}`);
 }
 
-/*
-function cancelScheduledEvents() {
-    if (typeof stopSpeechSync === 'function') {
-        stopSpeechSync();
-    }
-    console.log('Suplanuoti įvykiai atšaukti');
-}
-
-function stopActivities() {
-    const video = document.querySelector('#tvvideo');
-    if (video && !video.paused) {
-        video.pause();
-    }
-    if (typeof stopTalking === 'function') {
-        stopTalking('Tomas');
-        stopTalking('Lina');
-    }
-    console.log('Veikla sustabdyta');
-}
-*/
-
-function interruptShow() {
-    const video = document.querySelector('#tvvideo');
-
-    if (video) {
-        video.pause();
-    }
-
-    if (typeof stopSpeechSync === 'function') {
-        stopSpeechSync();
-    }
-    if (typeof stopTalking === 'function') {
-        stopTalking('Tomas');
-        stopTalking('Lina');
-    }
-}
 
 AFRAME.registerComponent('adaptive-controls', {
     init: function() {
@@ -733,14 +685,6 @@ AFRAME.registerComponent('adaptive-controls', {
 });
 
 
-document.addEventListener('DOMContentLoaded', function() {
-    const camera = document.querySelector('#camera');
-    if (camera) {
-        camera.setAttribute('adaptive-controls', '');
-    }
-});
-
-
 document.addEventListener('DOMContentLoaded', () => {
     const camera = document.querySelector('#camera');
     if (camera) {
@@ -769,25 +713,10 @@ AFRAME.registerComponent('showman-click', {
 });
 
 
-function updateVideoSource() {
-    if (!configData || !configData.video_files) {
-        return;
-    }
-    
-    const videoFile = configData.video_files[currentLanguage] || configData.video_files.en || 'video.mp4';
-    const video = document.querySelector('#tvvideo');
-    
-    if (video && video.src !== videoFile) {
-        console.log(`Pakeičiamas video failas į: ${videoFile}`);
-        video.src = videoFile;
-        video.load();
-    }
-}
-
-
-function createQuizMenu(questionData) {
+function createQuizMenu(questionData, quizType = 'final') {
     const menuEntity = document.createElement('a-entity');
     menuEntity.setAttribute('id', 'quizMenu');
+    menuEntity.setAttribute('quiz-type', quizType);
 
     const menuPos = calculateMenuPosition();
     menuEntity.setAttribute('position', `${menuPos.x} ${menuPos.y} ${menuPos.z}`);
@@ -798,12 +727,13 @@ function createQuizMenu(questionData) {
     while (questionData[`answer${answerNum}`]) {
         answers.push({
             number: answerNum,
-            text: questionData[`answer${answerNum}`]
+            text: questionData[`answer${answerNum}`],
+            isCorrect: questionData.correct_answer === `answer${answerNum}`
         });
         answerNum++;
     }
 
-    const menuHeight = calculateMenuHeight(answers.length + 1); // +1 klausimui
+    const menuHeight = calculateMenuHeight(answers.length + 1);
     const positions = generateButtonPositions(answers.length);
 
     const background = document.createElement('a-plane');
@@ -836,7 +766,9 @@ function createQuizMenu(questionData) {
 
         buttonEntity.setAttribute('quiz-button', {
             answerNumber: answer.number,
-            color: '#2a2a2a'
+            color: '#2a2a2a',
+            isCorrect: answer.isCorrect,
+            quizType: quizType
         });
 
         const buttonText = document.createElement('a-troika-text');
@@ -845,13 +777,38 @@ function createQuizMenu(questionData) {
         buttonText.setAttribute('align', 'center');
         buttonText.setAttribute('color', 'white');
         buttonText.setAttribute('font-size', '0.09');
-        buttonText.setAttribute('max-width', '2.3');
+        buttonText.setAttribute('max-width', '1.8');
 
         buttonEntity.appendChild(buttonText);
         menuEntity.appendChild(buttonEntity);
-
-        console.log('Quiz button created:', answer.number, answer.text);
     });
 
     return menuEntity;
 }
+
+
+AFRAME.registerComponent('vr-laser-visibility', {
+    init: function () {
+        this.onIntersection = this.onIntersection.bind(this);
+        this.onIntersectionCleared = this.onIntersectionCleared.bind(this);
+        
+        this.el.addEventListener('raycaster-intersection', this.onIntersection);
+        this.el.addEventListener('raycaster-intersection-cleared', this.onIntersectionCleared);
+    },
+
+    onIntersection: function (evt) {
+        const sceneEl = this.el.sceneEl;
+        if (sceneEl.is('vr-mode')) {
+            this.el.setAttribute('line', 'visible', true);
+        }
+    },
+
+    onIntersectionCleared: function (evt) {
+        this.el.setAttribute('line', 'visible', false);
+    },
+
+    remove: function () {
+        this.el.removeEventListener('raycaster-intersection', this.onIntersection);
+        this.el.removeEventListener('raycaster-intersection-cleared', this.onIntersectionCleared);
+    }
+});

@@ -8,7 +8,8 @@
         "answer2": "SCRUM",
         "answer3": "Agile",
         "answer4": "Prototyping",
-        "correct_answer": "answer1"
+        "correct_answer": "answer1",
+        "shuffle": true
       },
       "final_q2": {
         "question": "What is a software process model?",
@@ -17,7 +18,8 @@
         "answer2": "The software development activity",
         "answer3": "A description - how software should be created",
         "answer4": "A software modeling technique",
-        "correct_answer": "answer3"
+        "correct_answer": "answer3",
+        "shuffle": true
       },
       "final_q3": {
         "question": "Which process requires less documentation?",
@@ -26,7 +28,8 @@
         "answer2": "Agile",
         "answer3": "RUP",
         "answer4": "Spiral",
-        "correct_answer": "answer2"
+        "correct_answer": "answer2",
+        "shuffle": false
       },
       "final_q4": {
         "question": "Which model embraces changing requirements most?",
@@ -35,7 +38,8 @@
         "answer2": "Waterfall",
         "answer3": "Agile",
         "answer4": "Prototyping",
-        "correct_answer": "answer4"
+        "correct_answer": "answer4",
+        "shuffle": false
       },
       "final_q5": {
         "question": "Which process is the best one?",
@@ -46,7 +50,8 @@
         "answer4": "Agile",
         "answer5": "Kanban",
         "answer6": "Impossible to say",
-        "correct_answer": "answer6"
+        "correct_answer": "answer6",
+        "shuffle": false
       }
     },
     "lt": {
@@ -57,7 +62,8 @@
         "answer2": "SCRUM",
         "answer3": "Agile",
         "answer4": "Prototipavimo",
-        "correct_answer": "answer1"
+        "correct_answer": "answer1",
+        "shuffle": false
       },
       "final_q2": {
         "question": "Kas yra programų kūrimo proceso modelis?",
@@ -66,7 +72,8 @@
         "answer2": "Programų kūrimo veikla",
         "answer3": "Aprašymas apie tai kaip turi būti kuriama programinė įranga",
         "answer4": "Programų modeliavimo technika",
-        "correct_answer": "answer3"
+        "correct_answer": "answer3",
+        "shuffle": false
       },
       "final_q3": {
         "question": "Kuriam procesui reikia mažiausiai dokumentavimo?",
@@ -75,7 +82,8 @@
         "answer2": "Agile",
         "answer3": "RUP",
         "answer4": "Spiraliniam",
-        "correct_answer": "answer2"
+        "correct_answer": "answer2",
+        "shuffle": false
       },
       "final_q4": {
         "question": "Kuris modelis labiausiai atliepia besikeičiančius reikalavimus?",
@@ -84,7 +92,8 @@
         "answer2": "Krioklys",
         "answer3": "Agile",
         "answer4": "Prototipavimas",
-        "correct_answer": "answer4"
+        "correct_answer": "answer4",
+        "shuffle": false
       },
       "final_q5": {
         "question": "Kuris procesas yra pats geriausias?",
@@ -95,7 +104,8 @@
         "answer4": "Agile",
         "answer5": "Kanban",
         "answer6": "Neįmanoma pasakyti",
-        "correct_answer": "answer6"
+        "correct_answer": "answer6",
+        "shuffle": false
       }
     }
   },
@@ -108,7 +118,8 @@
         "answer2": "The software development activity",
         "answer3": "A description - how software should be created",
         "answer4": "A software modeling technique",
-        "correct_answer": "answer3"
+        "correct_answer": "answer3",
+        "shuffle": false
       },
       "question_2": {
         "question": "What is the big problem of the Waterfall model?",
@@ -117,7 +128,8 @@
         "answer2": "The amount of documentation",
         "answer3": "The evolution of created software",
         "answer4": "Big upfront design",
-        "correct_answer": "answer1"
+        "correct_answer": "answer1",
+        "shuffle": false
       },
       "question_3": {
         "question": "What is the spiral model focused on?",
@@ -126,7 +138,8 @@
         "answer2": "Technical implementation",
         "answer3": "Customer involvement",
         "answer4": "Process improvement",
-        "correct_answer": "answer1"
+        "correct_answer": "answer1",
+        "shuffle": false
       },
       "question_4": {
         "question": "What is the main benefit of the prototyping model?",
@@ -135,7 +148,8 @@
         "answer2": "Ability to demonstrate and refine functionality early on",
         "answer3": "Lower development costs for large projects",
         "answer4": "Elaborated structure of the system",
-        "correct_answer": "answer2"
+        "correct_answer": "answer2",
+        "shuffle": false
       },
       "question_5": {
         "question": "What makes the RUP model different from other software development processes?",
@@ -144,7 +158,8 @@
         "answer2": "It is an incremental model",
         "answer3": "The main activity of the model is prototyping",
         "answer4": "Continuous software testing",
-        "correct_answer": "answer1"
+        "correct_answer": "answer1",
+        "shuffle": false
       },
       "question_6": {
         "question": "What is the main goal of software process improvement?",
@@ -153,7 +168,8 @@
         "answer2": "Fully automate the development process",
         "answer3": "Improve software quality",
         "answer4": "Enhance the efficiency and quality of the process",
-        "correct_answer": "answer4"
+        "correct_answer": "answer4",
+        "shuffle": false
       }
     },
     "lt": {
@@ -164,7 +180,8 @@
         "answer2": "Programos kūrimo veikla",
         "answer3": "Aprašymas apie tai, kaip turi būti kuriama programinė įranga",
         "answer4": "Programinės įrangos modeliavimo būdas",
-        "correct_answer": "answer3"
+        "correct_answer": "answer3",
+        "shuffle": false
       },
       "question_2": {
         "question": "Kuri yra viena didžiausių krioklio modelio problemų?",
@@ -173,7 +190,8 @@
         "answer2": "Dokumentacijos kiekis",
         "answer3": "Programos tolesnis tobulinimas",
         "answer4": "Didelis išankstinis projektavimas",
-        "correct_answer": "answer1"
+        "correct_answer": "answer1",
+        "shuffle": false
       },
       "question_3": {
         "question": "Į ką orientuojasi spiralinis modelis?",
@@ -182,7 +200,8 @@
         "answer2": "Į techninį įgyvendinimą",
         "answer3": "Į reikalavimų surinkimą",
         "answer4": "Į proceso gerinimą",
-        "correct_answer": "answer1"
+        "correct_answer": "answer1",
+        "shuffle": false
       },
       "question_4": {
         "question": "Kokia yra pagrindinė prototipavimo modelio nauda?",
@@ -191,7 +210,8 @@
         "answer2": "Galimybė iš anksto pademonstruoti ir tikslinti funkcionalumą",
         "answer3": "Mažesnės kūrimo išlaidos dideliuose projektuose",
         "answer4": "Puiki kuriamos programos struktūra",
-        "correct_answer": "answer2"
+        "correct_answer": "answer2",
+        "shuffle": false
       },
       "question_5": {
         "question": "Kuo RUP modelis išsiskiria iš kitų programinės įrangos kūrimo procesų?",
@@ -200,7 +220,8 @@
         "answer2": "Tai yra inkrementinis modelis",
         "answer3": "Svarbiausia modelio veikla - prototipų kūrimas",
         "answer4": "Nuolatinis programos testavimas",
-        "correct_answer": "answer1"
+        "correct_answer": "answer1",
+        "shuffle": false
       },
       "question_6": {
         "question": "Koks yra pagrindinis programinės įrangos proceso tobulinimo tikslas?",
@@ -209,7 +230,8 @@
         "answer2": "Visiškai automatizuoti kūrimo procesą",
         "answer3": "Pagerinti programinės įrangos kokybę",
         "answer4": "Padidinti proceso efektyvumą ir kokybę",
-        "correct_answer": "answer4"
+        "correct_answer": "answer4",
+        "shuffle": false
       }
     }
   }
