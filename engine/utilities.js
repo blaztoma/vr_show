@@ -23,7 +23,7 @@ function checkConfigData() {
 
 async function loadSpeeches() {
     try {
-        const response = await fetch('speeches.json');
+        const response = await fetch('data/speeches.json');
         speechData = await response.json();
         console.log('Pokalbių duomenys užkrauti sėkmingai!');
         return true;
@@ -37,10 +37,10 @@ async function loadSpeeches() {
 async function loadDialogues() {
     try {
         const [response_woman_lt, response_woman_en, response_man_lt, response_man_en] = await Promise.all([
-            fetch('woman_lt.json'),
-            fetch('woman_en.json'),
-            fetch('man_lt.json'),
-            fetch('man_en.json')
+            fetch('data/woman_lt.json'),
+            fetch('data/woman_en.json'),
+            fetch('data/man_lt.json'),
+            fetch('data/man_en.json')
         ]);
 
         woman_lt = await response_woman_lt.json();
@@ -58,7 +58,7 @@ async function loadDialogues() {
 
 async function loadConfig() {
     try {
-        const response = await fetch('config.json');
+        const response = await fetch('data/config.json');
         configData = await response.json();
         console.log('Konfigūracijos duomenys užkrauti sėkmingai!');
         return true;
@@ -70,7 +70,7 @@ async function loadConfig() {
 
 async function loadQuizData() {
     try {
-        const response = await fetch('quiz_data.json');
+        const response = await fetch('data/quiz_data.json');
         quizData = await response.json();
         console.log('Kvizų duomenys užkrauti sėkmingai!');
         return true;

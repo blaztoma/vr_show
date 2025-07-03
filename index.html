@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
   <script src="https://unpkg.com/aframe-troika-text/dist/aframe-troika-text.min.js"></script>
-  <script src="loader.js"></script>
-  <script src="utilities.js"></script>
-  <script src="vr_menu.js"></script>
-  <script src="interactions.js"></script>
-  <script src="animations.js"></script>
+  <script src="engine/loader.js"></script>
+  <script src="engine/utilities.js"></script>
+  <script src="engine/vr_menu.js"></script>
+  <script src="engine/interactions.js"></script>
+  <script src="engine/animations.js"></script>
   <style>
     body {
       margin: 0;
@@ -120,11 +120,11 @@
 
 <a-scene id="mainScene" vr-mode-ui="enabled: true" inspector="url: https://cdn.jsdelivr.net/gh/aframevr/aframe-inspector@master/dist/aframe-inspector.min.js" embedded style="height: 100vh; width: 100vw;">
   <a-assets>
-    <a-asset-item id="roomModel" src="modelis.glb"></a-asset-item>
-    <a-asset-item id="manModel" src="man_talk.glb"></a-asset-item>
-    <a-asset-item id="womanModel" src="woman_talk.glb"></a-asset-item>
-    <a-asset-item id="showmanModel" src="show_man.glb"></a-asset-item>
-    <a-asset-item id="chairModel" src="chair.glb"></a-asset-item>
+    <a-asset-item id="roomModel" src="models/modelis.glb"></a-asset-item>
+    <a-asset-item id="manModel" src="models/man_talk.glb"></a-asset-item>
+    <a-asset-item id="womanModel" src="models/woman_talk.glb"></a-asset-item>
+    <a-asset-item id="showmanModel" src="models/show_man.glb"></a-asset-item>
+    <a-asset-item id="chairModel" src="models/chair.glb"></a-asset-item>
     <video id="tvvideo" src="video.mp4" loop playsinline crossorigin="anonymous"></video>
 </a-assets>
 

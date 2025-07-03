@@ -115,7 +115,7 @@ class CharacterAnimationManager {
     character.idleAction = character.mixer.clipAction(idleClip);
 
     // Rasti talk animaciją
-    const talkClip = this.findAnimation(characterName, 'talk') || model.animations[1] || model.animations[0];
+    const talkClip = this.findAnimation(characterName, 'talk') || model.animations[2] || model.animations[1] || model.animations[0];
     character.talkAction = character.mixer.clipAction(talkClip);
 
     // Paleisti idle animaciją
@@ -125,7 +125,7 @@ class CharacterAnimationManager {
 
     // Paruošti talk animaciją (tik paruošti, bet nepaleisti)
     character.talkAction.setLoop(THREE.LoopRepeat);
-    character.talkAction.setEffectiveWeight(1.0); // Pilnas svoris!
+    character.talkAction.setEffectiveWeight(1.0);
 
     character.initialized = true;
     this.startAnimationLoop(characterName);
