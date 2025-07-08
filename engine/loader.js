@@ -7,6 +7,7 @@ class LoadingManager {
         this.dataLoaded = false;
         this.assetsLoaded = false;
         this.loadingCompleted = false;
+        this.appInitialized = false;
         this.progressBar = document.getElementById('progressBar');
         this.loadingText = document.getElementById('loadingText');
         this.loadingScreen = document.getElementById('loadingScreen');
@@ -123,6 +124,13 @@ class LoadingManager {
     }
 
     initializeApp() {
+        if (this.appInitialized) {
+            console.log('⚠️ App already initialized, ignoring duplicate call');
+            return;
+        }
+
+        this.appInitialized = true;
+
         try {
             if (typeof initializeAllMenus === 'function') {
                 initializeAllMenus();
@@ -134,6 +142,21 @@ class LoadingManager {
             if (typeof initializeVideoInterruptions === 'function') {
                 initializeVideoInterruptions();
             }
+
+            if (typeof initializeSCORMWithRetry === 'function') {
+                initializeSCORMWithRetry();
+            }
+
+            if (typeof initCamera === 'function') {
+                initCamera();
+            }
+
+            if (typeof window.terminateSCORM === 'function') {
+                window.addEventListener('beforeunload', window.terminateSCORM);
+                window.addEventListener('unload', window.terminateSCORM);
+            }
+
+
         } catch (error) {
             console.error('Error initializing app:', error);
         }

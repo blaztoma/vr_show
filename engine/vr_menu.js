@@ -642,6 +642,23 @@ function handleLanguageMenuAnswer(answerNumber) {
 }
 
 
+function initCamera() {
+    const camera = document.querySelector('#camera');
+    if (camera) {
+        camera.setAttribute('smart-controls', '');
+        console.log('Controls initialized');
+    }
+}
+
+// document.addEventListener('DOMContentLoaded', () => {
+//     const camera = document.querySelector('#camera');
+//     if (camera) {
+//         camera.setAttribute('smart-controls', '');
+//         console.log('Controls initialized');
+//     }
+// });
+
+
 AFRAME.registerComponent('adaptive-controls', {
     init: function() {
         const sceneEl = this.el.sceneEl;
@@ -681,15 +698,6 @@ AFRAME.registerComponent('adaptive-controls', {
         const rightHand = document.querySelector('#rightHand');
         if (leftHand) leftHand.setAttribute('visible', false);
         if (rightHand) rightHand.setAttribute('visible', false);
-    }
-});
-
-
-document.addEventListener('DOMContentLoaded', () => {
-    const camera = document.querySelector('#camera');
-    if (camera) {
-        camera.setAttribute('smart-controls', '');
-        console.log('Controls initialized');
     }
 });
 
@@ -812,3 +820,5 @@ AFRAME.registerComponent('vr-laser-visibility', {
         this.el.removeEventListener('raycaster-intersection-cleared', this.onIntersectionCleared);
     }
 });
+
+window.initCamera = initCamera;

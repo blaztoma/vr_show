@@ -47,6 +47,13 @@ class CharacterAnimationManager {
     });
   }
 
+
+  // init() {
+  //     console.log('Initializing character animations...');
+  //     setTimeout(() => this.initializeAllCharacters(), 100);
+  // }
+
+
   initializeAllCharacters() {
     Object.keys(this.characters).forEach(characterName => {
       const entity = document.querySelector(`#${characterName}`);
@@ -285,3 +292,4 @@ window.setCharacterAnimation = (character, animationType) => {
 // Debug funkcijos
 window.checkAnimationStatus = (character) => animationManager.checkStatus(character);
 window.testAnimations = (character) => animationManager.test(character);
+window.initAnimations = () => animationManager.init();

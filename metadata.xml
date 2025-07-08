@@ -1,0 +1,151 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<lom xmlns="http://ltsc.ieee.org/xsd/LOM" 
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+     xsi:schemaLocation="http://ltsc.ieee.org/xsd/LOM lomv1.0/lom.xsd">
+
+    <general>
+        <identifier>
+            <catalog>VR_SHOW</catalog>
+            <entry>VR_SHOW_v1.0</entry>
+        </identifier>
+        <title>
+            <string language="en">VR Show Interactive Experience</string>
+            <string language="lt">VR šou interaktyvi patirtis</string>
+        </title>
+        <language>en</language>
+        <language>lt</language>
+        <description>
+            <string language="en">An interactive VR experience with video content, character dialogues, and quiz elements. Students can navigate through topics, interact with characters, and complete assessments.</string>
+            <string language="lt">Interaktyvi VR patirtis su video turiniu, personažų dialogais ir kvizų elementais. Studentai gali naršyti temas, bendrauti su personažais ir atlikti užduotis.</string>
+        </description>
+        <keyword>
+            <string language="en">VR</string>
+        </keyword>
+        <keyword>
+            <string language="en">Interactive</string>
+        </keyword>
+        <keyword>
+            <string language="en">Quiz</string>
+        </keyword>
+        <keyword>
+            <string language="en">Education</string>
+        </keyword>
+    </general>
+
+    <lifeCycle>
+        <version>
+            <string language="en">1.0</string>
+        </version>
+        <status>
+            <source>LOMv1.0</source>
+            <value>final</value>
+        </status>
+    </lifeCycle>
+
+    <technical>
+        <format>text/html</format>
+        <format>application/javascript</format>
+        <format>application/json</format>
+        <format>model/gltf-binary</format>
+        <format>video/mp4</format>
+        <size>0</size>
+        <location>index.html</location>
+        <requirement>
+            <orComposite>
+                <type>
+                    <source>LOMv1.0</source>
+                    <value>browser</value>
+                </type>
+                <name>
+                    <source>LOMv1.0</source>
+                    <value>any</value>
+                </name>
+                <minimumVersion>HTML5</minimumVersion>
+            </orComposite>
+        </requirement>
+        <installationRemarks>
+            <string language="en">Requires modern web browser with WebGL support for VR features</string>
+        </installationRemarks>
+        <otherPlatformRequirements>
+            <string language="en">WebGL, WebVR/WebXR support recommended</string>
+        </otherPlatformRequirements>
+        <duration>
+            <duration>PT30M</duration>
+        </duration>
+    </technical>
+
+    <educational>
+        <interactivityType>
+            <source>LOMv1.0</source>
+            <value>mixed</value>
+        </interactivityType>
+        <learningResourceType>
+            <source>LOMv1.0</source>
+            <value>simulation</value>
+        </learningResourceType>
+        <interactivityLevel>
+            <source>LOMv1.0</source>
+            <value>high</value>
+        </interactivityLevel>
+        <semanticDensity>
+            <source>LOMv1.0</source>
+            <value>medium</value>
+        </semanticDensity>
+        <intendedEndUserRole>
+            <source>LOMv1.0</source>
+            <value>learner</value>
+        </intendedEndUserRole>
+        <context>
+            <source>LOMv1.0</source>
+            <value>higher education</value>
+        </context>
+        <typicalAgeRange>
+            <string language="en">18-99</string>
+        </typicalAgeRange>
+        <difficulty>
+            <source>LOMv1.0</source>
+            <value>medium</value>
+        </difficulty>
+        <typicalLearningTime>
+            <duration>PT30M</duration>
+        </typicalLearningTime>
+        <description>
+            <string language="en">Interactive VR learning experience with assessment capabilities</string>
+        </description>
+        <language>en</language>
+        <language>lt</language>
+    </educational>
+
+    <rights>
+        <cost>
+            <source>LOMv1.0</source>
+            <value>no</value>
+        </cost>
+        <copyrightAndOtherRestrictions>
+            <source>LOMv1.0</source>
+            <value>yes</value>
+        </copyrightAndOtherRestrictions>
+        <description>
+            <string language="en">All rights reserved</string>
+        </description>
+    </rights>
+
+    <classification>
+        <purpose>
+            <source>LOMv1.0</source>
+            <value>educational objective</value>
+        </purpose>
+        <taxonPath>
+            <source>
+                <string language="en">Custom</string>
+            </source>
+            <taxon>
+                <id>VR.001</id>
+                <entry>
+                    <string language="en">Virtual Reality Experience</string>
+                </entry>
+            </taxon>
+        </taxonPath>
+    </classification>
+</lom>
