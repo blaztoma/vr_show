@@ -1,7 +1,9 @@
 let scormAPI = null;
 let scormVersion = null;
 let isScormAvailable = false;
+let quizInteractions = [];
 let useVideoProgressForCompletion = false;
+let questionStartTime = null;
 
 function checkConfigData() {
     // console.log('ConfigData status:', {
@@ -203,6 +205,7 @@ function initializeSCORM() {
             console.warn('SCORM API nerastas');
             isScormAvailable = false;
             scormAPI = null;
+            window.scormAPI = null; // ← PRIDĖKITE
             scormVersion = null;
             return false;
         }
@@ -216,6 +219,7 @@ function initializeSCORM() {
             
             if (initResult === 'true' || initResult === true) {
                 scormAPI = api;
+                window.scormAPI = api;
                 scormVersion = 'SCORM 2004';
                 isScormAvailable = true;
                 console.log('SCORM 2004 sėkmingai inicializuotas');
@@ -246,6 +250,7 @@ function initializeSCORM() {
             
             if (initResult === 'true' || initResult === true) {
                 scormAPI = api;
+                window.scormAPI = api;
                 scormVersion = 'SCORM 1.2';
                 isScormAvailable = true;
                 console.log('SCORM 1.2 sėkmingai inicializuotas');
@@ -273,6 +278,7 @@ function initializeSCORM() {
         console.warn('SCORM API rastas bet nepavyko inicializuoti');
         isScormAvailable = false;
         scormAPI = null;
+        window.scormAPI = null;
         scormVersion = null;
         return false;
 
@@ -280,6 +286,7 @@ function initializeSCORM() {
         console.error('SCORM inicializacijos klaida:', error);
         isScormAvailable = false;
         scormAPI = null;
+        window.scormAPI = null;
         scormVersion = null;
         return false;
     }
@@ -546,6 +553,134 @@ function getSavedVideoPosition() {
     return null;
 }
 
+function registerQuizInteraction(questionId, questionText, studentAnswer, correctAnswer, isCorrect, questionType = 'choice') {
+    const interaction = {
+        id: questionId,
+        type: questionType,
+        timestamp: new Date().toISOString(),
+        description: questionText,
+        student_response: studentAnswer,
+        correct_response: correctAnswer,
+        result: isCorrect ? 'correct' : 'incorrect',
+        latency: responseTime ? formatSCORMResponseTime(responseTime) : null
+    };
+
+    quizInteractions.push(interaction);
+
+    console.log('📝 Registered quiz interaction:', interaction);
+
+    saveSCORMInteraction(quizInteractions.length - 1, interaction);
+}
+
+// Išsaugoti interaction SCORM sistemoje
+function saveSCORMInteraction(index, interaction) {
+    const api = window.scormAPI || window.API_1484_11;
+
+    if (!api) {
+        console.warn('SCORM API nepasiekiamas, interaction saugomas lokaliai');
+        return;
+    }
+
+    try {
+        if (scormVersion === 'SCORM 2004') {
+            const interactionPrefix = `cmi.interactions.${index}`;
+
+            api.SetValue(`${interactionPrefix}.id`, interaction.id);
+            api.SetValue(`${interactionPrefix}.type`, interaction.type);
+            api.SetValue(`${interactionPrefix}.timestamp`, interaction.timestamp);
+            api.SetValue(`${interactionPrefix}.description`, interaction.description);
+            api.SetValue(`${interactionPrefix}.learner_response`, interaction.student_response);
+            api.SetValue(`${interactionPrefix}.result`, interaction.result);
+
+            // Correct response pattern
+            if (interaction.correct_response) {
+                api.SetValue(`${interactionPrefix}.correct_responses.0.pattern`, interaction.correct_response);
+            }
+
+            // Latency (jei turime)
+            if (interaction.latency) {
+                api.SetValue(`${interactionPrefix}.latency`, interaction.latency);
+            }
+
+            console.log(`✅ SCORM 2004 interaction ${index} išsaugotas`);
+
+        } else if (scormVersion === 'SCORM 1.2') {
+            const interactionPrefix = `cmi.interactions.${index}`;
+
+            api.LMSSetValue(`${interactionPrefix}.id`, interaction.id);
+            api.LMSSetValue(`${interactionPrefix}.type`, interaction.type);
+            api.LMSSetValue(`${interactionPrefix}.time`, interaction.timestamp);
+            api.LMSSetValue(`${interactionPrefix}.description`, interaction.description);
+            api.LMSSetValue(`${interactionPrefix}.student_response`, interaction.student_response);
+            api.LMSSetValue(`${interactionPrefix}.result`, interaction.result);
+            api.LMSSetValue(`${interactionPrefix}.correct_response`, interaction.correct_response);
+
+            if (interaction.latency) {
+                api.LMSSetValue(`${interactionPrefix}.latency`, interaction.latency);
+            }
+
+            console.log(`✅ SCORM 1.2 interaction ${index} išsaugotas`);
+        }
+
+    } catch (error) {
+        console.error('❌ Error saving SCORM interaction:', error);
+    }
+}
+
+// Išsaugoti visas interactions į suspend_data
+function saveAllInteractionsToSuspendData() {
+    const api = window.scormAPI || window.API_1484_11;
+
+    if (!api) {
+        console.warn('SCORM API nepasiekiamas');
+        return;
+    }
+
+    try {
+        // Gauti esamą suspend_data
+        const existingSuspendData = scormVersion === 'SCORM 2004'
+            ? api.GetValue('cmi.suspend_data')
+            : api.LMSGetValue('cmi.suspend_data');
+
+        let suspendData = {};
+
+        if (existingSuspendData && existingSuspendData !== '' && existingSuspendData !== 'false') {
+            try {
+                suspendData = JSON.parse(existingSuspendData);
+            } catch (error) {
+                console.warn('Neteisingas suspend_data formatas:', error);
+            }
+        }
+
+        // Pridėti interactions
+        suspendData.quizInteractions = quizInteractions;
+        suspendData.lastUpdate = new Date().toISOString();
+
+        const suspendDataString = JSON.stringify(suspendData);
+
+        if (scormVersion === 'SCORM 2004') {
+            api.SetValue('cmi.suspend_data', suspendDataString);
+        } else {
+            api.LMSSetValue('cmi.suspend_data', suspendDataString);
+        }
+
+        console.log('✅ Quiz interactions išsaugotos į suspend_data');
+
+    } catch (error) {
+        console.error('❌ Error saving interactions to suspend_data:', error);
+    }
+}
+
+function formatSCORMResponseTime(milliseconds) {
+    if (!milliseconds) return 'PT0H0M0S';
+    
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    return `PT${hours}H${minutes}M${seconds}S`;
+}
 
 // Pridėti visas funkcijas į window objektą
 window.getMasteryScore = getMasteryScore;
@@ -553,6 +688,10 @@ window.updateSCORMProgress = updateSCORMProgress;
 window.trackVideoProgress = trackVideoProgress;
 window.terminateSCORM = terminateSCORM;
 window.formatSCORMTime = formatSCORMTime;
+window.registerQuizInteraction = registerQuizInteraction;
+window.saveAllInteractionsToSuspendData = saveAllInteractionsToSuspendData;
+window.getQuizInteractions = () => quizInteractions;
+
 
 // Debug funkcijos (galima pašalinti production versijoje)
 window.getSCORMStatus = function() {

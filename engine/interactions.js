@@ -802,6 +802,8 @@ function askNextQuestion() {
 
 
 function showQuestionHud(questionData, quizType = 'final') {
+    questionStartTime = Date.now();
+
     if (typeof stopTalking === 'function') {
         stopTalking('showman');
     }
@@ -822,10 +824,26 @@ function showQuestionHud(questionData, quizType = 'final') {
     }
 }
 
-function handleQuizAnswer(answerNumber, isCorrect) {
-    console.log(`Pasirinktas atsakymas: ${answerNumber}`);
-    console.log(`Teisingai: ${isCorrect}`);
-    
+function handleQuizAnswer(answerNumber, isCorrect, questionData
+) {
+
+    const responseTime = questionStartTime ? Date.now() - questionStartTime : null;
+    const questionId = questionData.id || `question_${currentQuestionIndex}`;
+    const questionText = questionData.question || questionData.questionText || 'Unknown question';
+    const studentAnswer = questionData.answerText || questionData[`answer${answerNumber}`] || `Answer ${answerNumber}`;
+    const correctAnswerKey = questionData.correct_answer || questionData.correctAnswer;
+    const correctAnswer = questionData[correctAnswerKey] || questionData.correctAnswer || 'Unknown';
+
+    window.registerQuizInteraction(
+        questionId,
+        questionText,
+        studentAnswer,
+        correctAnswer,
+        isCorrect,
+        'choice',
+        responseTime
+    );
+
     if (isCorrect) {
         quizScore++;
     }
@@ -863,6 +881,7 @@ function handleQuizAnswer(answerNumber, isCorrect) {
         }, 1500);
     }
 }
+
 
 // Funkcija atsakymų maišymui (jei reikės ateityje)
 function shuffleAnswers(questionData) {
@@ -940,7 +959,9 @@ function registerQuizResults() {
 
     const percentage = Math.round((quizScore / finalQuizQuestions.length) * 100);
     const rawScore = quizScore;
+    const actualRawScore = percentage;
     const maxScore = finalQuizQuestions.length;
+    const actualMaxScore = 100;
     const scaledScore = percentage / 100; // SCORM reikalauja 0-1 formato
 
     // Perskaitome mastery score iš SCORM manifesto
@@ -954,43 +975,57 @@ function registerQuizResults() {
             // Naudojame globalius SCORM kintamuosius
             const scormStatus = window.getSCORMStatus();
             const successStatus = percentage >= masteryPercentage ? 'passed' : 'failed';
+            window.saveAllInteractionsToSuspendData();
 
             // Nustatome reikšmes per globalius kintamuosius
             if (scormStatus.version === 'SCORM 1.2') {
                 // SCORM 1.2 metodai yra jau prieinami per scormAPI
                 window.updateSCORMProgress(100);
 
-                // Tiesioginis API kvietimas rezultatams
-                if (typeof window.API !== 'undefined' && window.API) {
                     api.LMSSetValue('cmi.completion_status', 'completed');
                     api.LMSSetValue('cmi.success_status', successStatus);
-                    api.LMSSetValue('cmi.score.raw', rawScore.toString());
-                    api.LMSSetValue('cmi.score.max', maxScore.toString());
+                    api.LMSSetValue('cmi.score.raw', actualRawScore.toString());
+                    api.LMSSetValue('cmi.score.max', actualMaxScore.toString());
                     api.LMSSetValue('cmi.score.scaled', scaledScore.toString());
                     api.LMSSetValue('cmi.session_time', formatSCORMTime(new Date()));
+                    const masteryScore = getMasteryScore();
+                    if (percentage >= masteryScore) {
+                        api.LMSSetValue('cmi.lesson_status', 'passed');
+                        api.LMSSetValue('cmi.completion_status', 'completed');
+                    } else {
+                        api.LMSSetValue('cmi.lesson_status', 'failed');
+                        api.LMSSetValue('cmi.completion_status', 'completed');
+                    }
 
                     const commitResult = api.LMSCommit('');
                     if (commitResult === 'true') {
                         console.log('SCORM 1.2 rezultatai sėkmingai išsaugoti');
                         showNotification(`Rezultatai išsaugoti: ${rawScore}/${maxScore} (${percentage}%)`, 3000);
                     }
-                }
+
             } else if (scormStatus.version === 'SCORM 2004') {
                 window.updateSCORMProgress(100);
 
-                if (typeof window.API_1484_11 !== 'undefined' && window.API_1484_11) {
                     api.SetValue('cmi.completion_status', 'completed');
                     api.SetValue('cmi.success_status', successStatus);
-                    api.SetValue('cmi.score.raw', rawScore.toString());
-                    api.SetValue('cmi.score.max', maxScore.toString());
+                    api.SetValue('cmi.score.raw', actualRawScore.toString());
+                    api.SetValue('cmi.score.max', actualMaxScore.toString());
                     api.SetValue('cmi.score.scaled', scaledScore.toString());
                     api.SetValue('cmi.session_time', formatSCORMTime(new Date()));
+                    const masteryScore = getMasteryScore();
+                    if (percentage >= masteryScore) {
+                        api.SetValue('cmi.success_status', 'passed');
+                        api.SetValue('cmi.completion_status', 'completed');
+                    } else {
+                        api.SetValue('cmi.success_status', 'failed');
+                        api.SetValue('cmi.completion_status', 'completed');
+                    }
 
                     const commitResult = api.Commit('');
                     if (commitResult === 'true') {
                         console.log('SCORM 2004 rezultatai sėkmingai išsaugoti');
                     }
-                }
+
             }
 
             console.log('SCORM rezultatai:', {
@@ -1005,7 +1040,6 @@ function registerQuizResults() {
         } else {
             console.warn('SCORM API nerastas. Rezultatai nebus išsaugoti į LMS.');
 
-            // Lokalus saugojimas kaip atsarginis variantas
             const localResults = {
                 score: rawScore,
                 maxScore: maxScore,

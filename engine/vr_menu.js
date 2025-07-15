@@ -459,7 +459,8 @@ AFRAME.registerComponent('quiz-button', {
         answerNumber: {type: 'int'},
         color: {type: 'color', default: '#2a2a2a'},
         isCorrect: {type: 'boolean', default: false},
-        quizType: {type: 'string', default: 'final'}
+        quizType: {type: 'string', default: 'final'},
+        questionData: {type: 'string', default: '{}'}
     },
 
     init: function() {
@@ -520,10 +521,12 @@ AFRAME.registerComponent('quiz-button', {
             this.el.setAttribute('scale', '1 1 1');
         }, 100);
 
+        const questionData = JSON.parse(this.data.questionData || '{}');
+
         if (quizType === 'interruption') {
             handleInterruptionAnswer(answerNumber, isCorrect);
         } else if (quizType === 'final') {
-            handleQuizAnswer(answerNumber, isCorrect);
+            handleQuizAnswer(answerNumber, isCorrect, questionData);
         } else {
             console.error('Unknown quiz type:', quizType);
         }
@@ -776,7 +779,8 @@ function createQuizMenu(questionData, quizType = 'final') {
             answerNumber: answer.number,
             color: '#2a2a2a',
             isCorrect: answer.isCorrect,
-            quizType: quizType
+            quizType: quizType,
+            questionData: JSON.stringify(questionData)
         });
 
         const buttonText = document.createElement('a-troika-text');
