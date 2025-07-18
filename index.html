@@ -7,6 +7,7 @@
   <script src="https://unpkg.com/aframe-troika-text/dist/aframe-troika-text.min.js"></script>
   <script src="engine/loader.js"></script>
   <script src="engine/utilities.js"></script>
+  <script src="engine/stats.js"></script>
   <script src="engine/vr_menu.js"></script>
   <script src="engine/interactions.js"></script>
   <script src="engine/animations.js"></script>
@@ -15,6 +16,47 @@
       margin: 0;
       overflow: hidden;
     }
+    
+    /* FPS Counter stiliai */
+    #fpsCounter {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      z-index: 10000;
+      min-width: 200px;
+      line-height: 1.4;
+    }
+    
+    #fpsCounter .fps-value {
+      font-size: 18px;
+      font-weight: bold;
+      color: #00ff00;
+    }
+    
+    #fpsCounter .fps-low {
+      color: #ff0000;
+    }
+    
+    #fpsCounter .fps-medium {
+      color: #ffaa00;
+    }
+    
+    #fpsCounter .fps-high {
+      color: #00ff00;
+    }
+    
+    #fpsCounter .stats-row {
+      margin: 2px 0;
+      display: flex;
+      justify-content: space-between;
+    }
+    
     #loadingScreen {
       position: fixed;
       top: 0;
@@ -102,6 +144,38 @@
 </head>
 <body>
 
+<!-- FPS Counter -->
+<div id="fpsCounter">
+  <div class="stats-row">
+    <span>FPS:</span>
+    <span id="fpsValue" class="fps-value">0</span>
+  </div>
+  <div class="stats-row">
+    <span>Frame Time:</span>
+    <span id="frameTime">0.0ms</span>
+  </div>
+  <div class="stats-row">
+    <span>Min FPS:</span>
+    <span id="minFps">0</span>
+  </div>
+  <div class="stats-row">
+    <span>Max FPS:</span>
+    <span id="maxFps">0</span>
+  </div>
+  <div class="stats-row">
+    <span>Avg FPS:</span>
+    <span id="avgFps">0</span>
+  </div>
+  <div class="stats-row">
+    <span>Render Calls:</span>
+    <span id="renderCalls">0</span>
+  </div>
+  <div class="stats-row">
+    <span>Triangles:</span>
+    <span id="triangles">0</span>
+  </div>
+</div>
+
 <!-- Krovimo ekranas -->
 <div id="loadingScreen">
   <div class="loading-content">
@@ -153,7 +227,7 @@
 
   <!-- Kambario modelis -->
   <a-entity id="room" gltf-model="#roomModel" position="0 0 -5" scale="0.5 0.5 0.5"></a-entity>
-  
+
   <!-- Video ekranas -->
   <a-plane
           id="tvScreen"
@@ -163,7 +237,8 @@
           rotation="0 0 0"
           material="shader: flat; src: #tvvideo; opacity: 0">
   </a-plane>
-<!--
+
+  <!--
   <a-entity
           id="chair"
           gltf-model="chair.glb"
@@ -202,7 +277,6 @@
             visible="false">
     </a-entity>
   </a-entity>
-
   <!-- Vyras su burbulu -->
   <a-entity
           id="man"
@@ -255,7 +329,6 @@
             visible="false"
             material="transparent: true">
     </a-plane>
-
     <a-entity
             id="showmanText"
             position="0 2 0.01"
@@ -264,7 +337,6 @@
             visible="false">
     </a-entity>
   </a-entity>
-
   <!--
   <a-light type="ambient" color="#404040"></a-light>
   <a-light type="directional" position="0 10 0" light="castShadow: true"></a-light>
